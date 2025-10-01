@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:async';
-import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  // ✅ Parameter để biết có phải từ AuthGate hay không (không còn dùng nữa)
+  final bool isInitialCheck;
+
+  const SplashScreen({Key? key, this.isInitialCheck = false}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -14,7 +16,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _controller;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  bool _canSkip = false;
   bool _animationCompleted = false;
 
   @override
@@ -23,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _controller = AnimationController(vsync: this);
 
-    // Controller cho hiệu ứng fade
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -32,50 +32,31 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
     );
-
-    // Cho phép skip sau 2 giây
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _canSkip = true);
-      }
-    });
-
-    _navigateToLogin();
   }
 
-  _navigateToLogin() async {
-    await Future.delayed(const Duration(milliseconds: 9800));
+  // ✅ FIXED: Điều hướng đến LoginScreen
+  void _goToLoginScreen() {
     if (mounted) {
-      _goToLogin();
+      Navigator.pushReplacementNamed(context, '/login_screen');
     }
   }
 
+  // ✅ FIXED: Logic animation hoàn chỉnh và rõ ràng
   void _onAnimationComplete() {
+    if (!mounted) return;
+
     setState(() => _animationCompleted = true);
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _fadeController.forward();
-      }
-    });
-  }
 
-  void _goToLogin() async {
-    if (!_fadeController.isAnimating && _fadeController.value == 0) {
-      await _fadeController.forward();
-    }
-
-    await Future.delayed(const Duration(milliseconds: 50));
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 400),
-        ),
-      );
+    // Chỉ điều hướng khi KHÔNG phải từ AuthGate (isInitialCheck = false)
+    // Khi isInitialCheck = true, AuthGate sẽ tự quản lý navigation
+    if (!widget.isInitialCheck) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _fadeController.forward().then((_) {
+            _goToLoginScreen();
+          });
+        }
+      });
     }
   }
 
@@ -88,6 +69,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Chỉ hiển thị nút Skip khi không phải từ AuthGate và chưa hoàn thành animation
+    bool showSkipButton = !widget.isInitialCheck && !_animationCompleted;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -114,7 +98,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     },
                   ),
                   const SizedBox(height: 18),
-                  // Tên app
                   const Text(
                     'Freshmart',
                     style: TextStyle(
@@ -136,18 +119,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
 
-          if (_canSkip)
+          // ✅ Nút Skip chỉ hiện khi cần
+          if (showSkipButton)
             Positioned(
               bottom: 40,
               right: 30,
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: GestureDetector(
-                  onTap: _goToLogin,
-                  child: const SizedBox(
+                  onTap: () {
+                    // Cancel animation và chuyển ngay
+                    _controller.stop();
+                    _fadeController.stop();
+                    _goToLoginScreen();
+                  },
+                  child: Container(
                     width: 56,
                     height: 56,
-                    child: Icon(
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
                       Icons.skip_next,
                       color: Colors.green,
                       size: 32,

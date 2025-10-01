@@ -4,7 +4,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<String?> login(String email, String password) async {
@@ -13,18 +12,15 @@ class LoginController {
         email: email,
         password: password,
       );
-      //in uid ra log
       return userCredential.user?.uid;
-      //không đăng nhập được
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         return 'Không tìm thấy người dùng cho email đó.';
       } else if (e.code == 'wrong-password') {
         return 'Mật khẩu cung cấp không chính xác.';
       } else if (e.code == 'invalid-credential') {
-    return 'Thông tin đăng nhập không hợp lệ hoặc đã hết hạn.';
-    }
-      else {
+        return 'Thông tin đăng nhập không hợp lệ hoặc đã hết hạn.';
+      } else {
         return 'Đã xảy ra lỗi. Vui lòng thử lại: ${e.message}';
       }
     } catch (e) {
@@ -36,7 +32,6 @@ class LoginController {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // Đăng nhập bị hủy
         return "";
       }
 
@@ -50,20 +45,47 @@ class LoginController {
       UserCredential userCredential =
       await _auth.signInWithCredential(credential);
 
-      // Sau khi đăng nhập, lấy UID và thông tin người dùng từ Firestore
       String uid = userCredential.user!.uid;
-
       return uid;
     } catch (e) {
       print('Lỗi đăng nhập: ${e.toString()}');
       return '';
     }
-    return '';
   }
 
-  Future<void> logout() async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
+  // ✅ LOGOUT với DEBUG LOG
+  Future<bool> logout() async {
+    print('🟢 LoginController: logout() called');
+
+    try {
+      print('🟢 LoginController: Signing out from Google...');
+      await _googleSignIn.signOut();
+      print('🟢 LoginController: Google sign out SUCCESS');
+
+      print('🟢 LoginController: Signing out from Firebase...');
+      await _auth.signOut();
+      print('🟢 LoginController: Firebase sign out SUCCESS');
+
+      // Verify logout
+      final user = _auth.currentUser;
+      print('🟢 LoginController: Current user after logout: ${user?.email ?? "NULL"}');
+
+      return true;
+    } catch (e, stackTrace) {
+      print('🔴 LoginController ERROR: $e');
+      print('🔴 LoginController STACKTRACE: $stackTrace');
+
+      // Vẫn cố gắng đăng xuất Firebase nếu Google fail
+      try {
+        print('🟡 LoginController: Attempting Firebase signout as fallback...');
+        await _auth.signOut();
+        print('🟡 LoginController: Fallback Firebase signout SUCCESS');
+      } catch (e2) {
+        print('🔴 LoginController: Fallback also failed: $e2');
+      }
+
+      return false;
+    }
   }
 
   Future<String?> changePassword(
@@ -75,15 +97,12 @@ class LoginController {
     }
 
     try {
-      // Re-authenticate the user
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
         password: currentPassword,
       );
 
       await user.reauthenticateWithCredential(credential);
-
-      // Update the password
       await user.updatePassword(newPassword);
       return 'Mật khẩu đã được cập nhật thành công.';
     } on FirebaseAuthException catch (e) {

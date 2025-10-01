@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shoppingapp/models/address_model.dart';
 import 'package:shoppingapp/services/address_firestore_service.dart';
+import 'package:shoppingapp/controllers/login_controller.dart';
+import '../../main.dart';
 import '../../utils/constants.dart';
 import 'address_screen.dart';
-import 'package:shoppingapp/screens/login_screen.dart';
 import 'package:shoppingapp/screens/main_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -275,7 +276,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => AddressScreen(
-                  // Truyền Address.defaultAddress() (rỗng) cho form chỉnh sửa
                   address: Address.defaultAddress(),
                 ),
               ),
@@ -407,12 +407,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
+                final loginController = LoginController();
+                await loginController.logout();
                 final appState = context.read<AppState>();
                 appState.reset();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                Navigator.of(context).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const AuthGate()),
+                      (route) => false,
                 );
               },
               child: const Text(
