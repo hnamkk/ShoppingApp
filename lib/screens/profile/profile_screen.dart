@@ -1,13 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shoppingapp/models/address_model.dart';
-import 'package:shoppingapp/services/address_firestore_service.dart';
 import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
 import '../../utils/constants.dart';
-import 'address_screen.dart';
+import '../../widgets/address_card.dart';
 import 'package:shoppingapp/screens/main_screen.dart';
+import 'add_product_screen.dart';
+import 'add_voucher_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -17,40 +17,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  Address? currentAddress;
-  bool isLoading = true;
-  final AddressFirestoreService _addressService = AddressFirestoreService();
+  bool isAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    _loadAddress();
+    _checkAdminStatus();
   }
 
-  Future<void> _loadAddress() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    final savedAddress = await _addressService.getAddress();
-
-    setState(() {
-      currentAddress = savedAddress;
-      isLoading = false;
-    });
-  }
-
-  Future<void> _saveAddress(Address address) async {
-    final success = await _addressService.saveAddress(address);
-
-    if (success) {
+  Future<void> _checkAdminStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final idTokenResult = await user.getIdTokenResult();
       setState(() {
-        currentAddress = address;
+        isAdmin = idTokenResult.claims?['admin'] == true;
       });
-          } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi: Không thể lưu địa chỉ. Vui lòng kiểm tra đăng nhập.')),
-      );
     }
   }
 
@@ -61,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _buildProfileHeader(),
           const SizedBox(height: 16),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -76,10 +56,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildAddressItem(context),
-
+                const AddressCard(),
+                if (isAdmin) ...[
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Admin',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildProfileItem(
+                    context,
+                    Icons.add_shopping_cart,
+                    'Thêm sản phẩm',
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddProductScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildProfileItem(
+                    context,
+                    Icons.local_offer,
+                    'Thêm voucher',
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddVoucherScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 const SizedBox(height: 24),
-
                 const Text(
                   'Tài khoản',
                   style: TextStyle(
@@ -89,7 +105,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 _buildProfileItem(
                   context,
                   Icons.history,
@@ -108,9 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   AppStrings.paymentMethods,
                   null,
                 ),
-
                 const SizedBox(height: 24),
-
                 const Text(
                   'Cài đặt',
                   style: TextStyle(
@@ -120,16 +133,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 _buildProfileItem(
                   context,
                   Icons.notifications,
                   AppStrings.notifications,
                   null,
                 ),
-
                 const SizedBox(height: 24),
-
                 const Text(
                   'Hỗ trợ',
                   style: TextStyle(
@@ -139,7 +149,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 _buildProfileItem(
                   context,
                   Icons.mail,
@@ -152,9 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Về ứng dụng',
                   null,
                 ),
-
                 const SizedBox(height: 24),
-
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.logout, color: Color(0xFFE57373)),
@@ -171,7 +178,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 32),
               ],
             ),
@@ -216,135 +222,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Colors.black,
             ),
           ),
-                  ],
-      ),
-    );
-  }
-
-  Widget _buildAddressItem(BuildContext context) {
-    if (isLoading) {
-      return const Card(
-        margin: EdgeInsets.only(bottom: 8),
-        elevation: 2,
-        child: ListTile(
-          leading: Icon(Icons.location_on, color: Colors.green),
-          title: Text('Đang tải địa chỉ...'),
-        ),
-      );
-    }
-
-    if (currentAddress == null) {
-      return Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ListTile(
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: const Icon(
-            Icons.location_on,
-            color: Colors.green,
-            size: 28,
-          ),
-          title: const Text(
-            'Chọn địa chỉ',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          subtitle: const Padding(
-            padding: EdgeInsets.only(top: 4),
-            child: Text(
-              'Vui lòng thiết lập địa chỉ giao hàng',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF757575),
-              ),
-            ),
-          ),
-          trailing: const Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Color(0xFF757575),
-          ),
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddressScreen(
-                  address: Address.defaultAddress(),
-                ),
-              ),
-            );
-
-            if (result != null && result is Address) {
-              await _saveAddress(result);
-            }
-          },
-        ),
-      );
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: const Icon(
-          Icons.location_on,
-          color: Colors.green,
-          size: 28,
-        ),
-        title: Text(
-          currentAddress!.getShortAddress(),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            currentAddress!.getFullAddress(),
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF757575),
-            ),
-          ),
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddressScreen(
-                address: currentAddress!,
-              ),
-            ),
-          );
-
-          if (result != null && result is Address) {
-            await _saveAddress(result);
-          }
-        },
+        ],
       ),
     );
   }
 
   Widget _buildProfileItem(
-      BuildContext context,
-      IconData icon,
-      String title,
-      VoidCallback? onTap,
-      ) {
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback? onTap,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -366,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: Color(0xFF757575),
         ),
         onTap: onTap ??
-                () {
+            () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Tính năng $title đang được phát triển'),
@@ -409,13 +297,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               onPressed: () async {
                 final loginController = LoginController();
-                await loginController.logout();
+                await loginController.logout(context);
                 final appState = context.read<AppState>();
                 appState.reset();
                 Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const AuthGate()),
-                      (route) => false,
+                  (route) => false,
                 );
               },
               child: const Text(

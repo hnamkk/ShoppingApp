@@ -19,7 +19,6 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return ConvexAppBar(
       backgroundColor: Colors.white,
       style: TabStyle.react,

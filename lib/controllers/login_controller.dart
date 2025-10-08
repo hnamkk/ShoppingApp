@@ -1,17 +1,26 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import '../services/cart_service.dart';
 
 class LoginController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Future<String?> login(String email, String password) async {
+  Future<String?> login(
+      String email, String password, BuildContext context) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      if (userCredential.user != null && context.mounted) {
+        final cartService = Provider.of<CartService>(context, listen: false);
+        await cartService.initialize();
+      }
+
       return userCredential.user?.uid;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -36,14 +45,19 @@ class LoginController {
       }
 
       final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       UserCredential userCredential =
-      await _auth.signInWithCredential(credential);
+          await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null && context.mounted) {
+        final cartService = Provider.of<CartService>(context, listen: false);
+        await cartService.initialize();
+      }
 
       String uid = userCredential.user!.uid;
       return uid;
@@ -53,37 +67,22 @@ class LoginController {
     }
   }
 
-  // ✅ LOGOUT với DEBUG LOG
-  Future<bool> logout() async {
-    print('🟢 LoginController: logout() called');
-
+  Future<bool> logout(BuildContext context) async {
     try {
-      print('🟢 LoginController: Signing out from Google...');
-      await _googleSignIn.signOut();
-      print('🟢 LoginController: Google sign out SUCCESS');
-
-      print('🟢 LoginController: Signing out from Firebase...');
-      await _auth.signOut();
-      print('🟢 LoginController: Firebase sign out SUCCESS');
-
-      // Verify logout
-      final user = _auth.currentUser;
-      print('🟢 LoginController: Current user after logout: ${user?.email ?? "NULL"}');
-
-      return true;
-    } catch (e, stackTrace) {
-      print('🔴 LoginController ERROR: $e');
-      print('🔴 LoginController STACKTRACE: $stackTrace');
-
-      // Vẫn cố gắng đăng xuất Firebase nếu Google fail
-      try {
-        print('🟡 LoginController: Attempting Firebase signout as fallback...');
-        await _auth.signOut();
-        print('🟡 LoginController: Fallback Firebase signout SUCCESS');
-      } catch (e2) {
-        print('🔴 LoginController: Fallback also failed: $e2');
+      if (context.mounted) {
+        final cartService = Provider.of<CartService>(context, listen: false);
+        cartService.reset();
       }
 
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+      return true;
+    } catch (e) {
+      try {
+        await _auth.signOut();
+      } catch (e2) {
+        print('LoginController: Fallback also failed: $e2');
+      }
       return false;
     }
   }

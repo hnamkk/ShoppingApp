@@ -17,8 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       TextEditingController();
   final RegisterController _registerController = RegisterController();
 
-  // String? _verificationId;
-
   Future<void> _register() async {
     if (_passwordController.text != _passwordAgainController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -34,7 +32,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result != null) {
       print("UID: $result");
       if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen', arguments: result);
+        Navigator.pushReplacementNamed(context, '/home_screen',
+            arguments: result);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
@@ -49,7 +48,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result != null) {
       print("UID: $result");
       if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen', arguments: result);
+        Navigator.pushReplacementNamed(context, '/home_screen',
+            arguments: result);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),

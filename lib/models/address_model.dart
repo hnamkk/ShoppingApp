@@ -32,7 +32,6 @@ class Address {
       'district': district,
       'province': province,
       'phone': phone,
-      // Thêm timestamp để theo dõi thời điểm lưu/cập nhật
       'timestamp': FieldValue.serverTimestamp(),
     };
   }
@@ -47,15 +46,13 @@ class Address {
     );
   }
 
-  // Format địa chỉ ngắn gọn để hiển thị (ví dụ: trong mục đơn hàng)
   String getShortAddress() {
     return '$detail ($phone)';
   }
 
-  // Format địa chỉ đầy đủ (Phường/Xã, Quận/Huyện, Tỉnh/Thành phố)
   String getFullAddress() {
-    // Lọc bỏ các trường rỗng để tránh hiển thị dấu phẩy thừa
-    List<String> parts = [ward, district, province].where((p) => p.isNotEmpty).toList();
+    List<String> parts =
+        [detail, ward, district, province].where((p) => p.isNotEmpty).toList();
     return parts.join(', ');
   }
 

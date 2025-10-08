@@ -4,6 +4,7 @@ import 'package:shoppingapp/screens/login_screen.dart';
 import 'package:shoppingapp/screens/main_screen.dart';
 import 'package:shoppingapp/screens/register_screen.dart';
 import 'package:shoppingapp/screens/splash_screen.dart';
+import 'package:shoppingapp/services/cart_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppState()),
+        ChangeNotifierProvider(create: (context) => CartService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -42,7 +44,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ✅ FIXED: AuthGate với logic rõ ràng hơn
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -51,7 +52,6 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // 1. Đang kiểm tra auth state - hiển thị loading đơn giản
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             backgroundColor: Colors.white,
@@ -73,13 +73,9 @@ class AuthGate extends StatelessWidget {
             ),
           );
         }
-
-        // 2. Đã đăng nhập - vào app ngay
         if (snapshot.hasData && snapshot.data != null) {
           return const MainScreenWrapper();
         }
-
-        // 3. Chưa đăng nhập - hiển thị SplashScreen với animation đầy đủ
         return const SplashScreen(isInitialCheck: false);
       },
     );

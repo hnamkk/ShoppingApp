@@ -26,14 +26,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     String? result = await _loginController.login(
-      _usernameController.text,
-      _passwordController.text,
-    );
+        _usernameController.text, _passwordController.text, context);
 
     if (result != null) {
       print("UID: $result");
       if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen', arguments: result);
+        Navigator.pushReplacementNamed(context, '/home_screen',
+            arguments: result);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
@@ -51,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacementNamed(context, '/home_screen',
             arguments: result);
       } else {
-        // Hiển thị lỗi nếu không phải UID (ví dụ: lỗi Firebase)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
         );
@@ -119,7 +117,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // set từ trên xuống
         body: Stack(
       alignment: Alignment.center,
       fit: StackFit.expand,
@@ -137,10 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/register_screen');
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => RegisterScreen()),
-                  // );
                 },
                 style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.green.shade600),
@@ -163,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 50.0),
               SizedBox(
-                width: 300.0, // Set the desired width
+                width: 300.0,
                 height: 50.0,
                 child: TextField(
                   controller: _usernameController,
@@ -188,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16.0),
               SizedBox(
-                width: 300.0, // Set the desired width
+                width: 300.0,
                 height: 50.0,
                 child: TextField(
                   controller: _passwordController,
@@ -220,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  obscureText: !_isPasswordVisible, // Ẩn/hiện mật khẩu
+                  obscureText: !_isPasswordVisible,
                 ),
               ),
               const SizedBox(height: 16.0),

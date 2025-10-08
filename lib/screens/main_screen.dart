@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shoppingapp/screens/profile/profile_screen.dart';
 import '../widgets/bottom_app_bar.dart';
 import 'home/home_screen.dart';
 
@@ -17,6 +16,7 @@ class AppState extends ChangeNotifier {
     _currentBody = newBody;
     notifyListeners();
   }
+
   void reset() {
     _currentTitle = 'Trang chủ';
     _currentBody = const HomeScreen();
@@ -24,8 +24,8 @@ class AppState extends ChangeNotifier {
   }
 }
 
-class MainScreenWrapper  extends StatelessWidget {
-  const MainScreenWrapper ({super.key});
+class MainScreenWrapper extends StatelessWidget {
+  const MainScreenWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {

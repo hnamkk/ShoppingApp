@@ -6,7 +6,6 @@ import 'package:shoppingapp/models/address_model.dart';
 class AddressScreen extends StatefulWidget {
   final Address address;
 
-
   const AddressScreen({required this.address});
 
   @override
@@ -38,7 +37,8 @@ class _AddressScreenState extends State<AddressScreen> {
 
   Future<void> loadLocations() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/data/locations.json');
+      final String jsonString =
+          await rootBundle.loadString('assets/data/locations.json');
       final data = json.decode(jsonString);
 
       setState(() {
@@ -78,7 +78,8 @@ class _AddressScreenState extends State<AddressScreen> {
   void updateDistricts() {
     if (selectedProvince != null && locations.containsKey(selectedProvince)) {
       setState(() {
-        districts = (locations[selectedProvince] as Map<String, dynamic>).keys.toList();
+        districts =
+            (locations[selectedProvince] as Map<String, dynamic>).keys.toList();
         selectedDistrict = null;
         selectedWard = null;
         wards = [];
@@ -92,7 +93,8 @@ class _AddressScreenState extends State<AddressScreen> {
         locations[selectedProvince] != null &&
         locations[selectedProvince][selectedDistrict] != null) {
       setState(() {
-        wards = List<String>.from(locations[selectedProvince][selectedDistrict]);
+        wards =
+            List<String>.from(locations[selectedProvince][selectedDistrict]);
         selectedWard = null;
       });
     }
@@ -233,7 +235,6 @@ class _AddressScreenState extends State<AddressScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Thông tin liên hệ
               const Text(
                 'Thông tin liên hệ',
                 style: TextStyle(
@@ -243,17 +244,13 @@ class _AddressScreenState extends State<AddressScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
               _buildTextField(
                 controller: phoneController,
                 label: 'Số điện thoại',
                 icon: Icons.phone,
                 keyboardType: TextInputType.phone,
               ),
-
               const SizedBox(height: 8),
-
-              // Địa chỉ
               const Text(
                 'Địa chỉ',
                 style: TextStyle(
@@ -263,7 +260,6 @@ class _AddressScreenState extends State<AddressScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
               _buildDropdown(
                 label: 'Tỉnh/Thành phố',
                 icon: Icons.location_city,
@@ -276,7 +272,6 @@ class _AddressScreenState extends State<AddressScreen> {
                   });
                 },
               ),
-
               _buildDropdown(
                 label: 'Quận/Huyện',
                 icon: Icons.map,
@@ -292,7 +287,6 @@ class _AddressScreenState extends State<AddressScreen> {
                     ? 'Vui lòng chọn Tỉnh/Thành phố trước'
                     : 'Chọn Quận/Huyện',
               ),
-
               _buildDropdown(
                 label: 'Phường/Xã',
                 icon: Icons.place,
@@ -307,16 +301,13 @@ class _AddressScreenState extends State<AddressScreen> {
                     ? 'Vui lòng chọn Quận/Huyện trước'
                     : 'Chọn Phường/Xã',
               ),
-
               _buildTextField(
                 controller: detailController,
                 label: 'Địa chỉ chi tiết (Số nhà, tên đường...)',
                 icon: Icons.home,
                 maxLines: 1,
               ),
-
               const SizedBox(height: 16),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -339,7 +330,6 @@ class _AddressScreenState extends State<AddressScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 32),
             ],
           ),

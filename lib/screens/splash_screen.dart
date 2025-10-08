@@ -3,7 +3,6 @@ import 'package:lottie/lottie.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
-  // ✅ Parameter để biết có phải từ AuthGate hay không (không còn dùng nữa)
   final bool isInitialCheck;
 
   const SplashScreen({Key? key, this.isInitialCheck = false}) : super(key: key);
@@ -12,7 +11,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -34,21 +34,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     );
   }
 
-  // ✅ FIXED: Điều hướng đến LoginScreen
   void _goToLoginScreen() {
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/login_screen');
     }
   }
 
-  // ✅ FIXED: Logic animation hoàn chỉnh và rõ ràng
   void _onAnimationComplete() {
     if (!mounted) return;
 
     setState(() => _animationCompleted = true);
 
-    // Chỉ điều hướng khi KHÔNG phải từ AuthGate (isInitialCheck = false)
-    // Khi isInitialCheck = true, AuthGate sẽ tự quản lý navigation
     if (!widget.isInitialCheck) {
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
@@ -69,14 +65,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Chỉ hiển thị nút Skip khi không phải từ AuthGate và chưa hoàn thành animation
     bool showSkipButton = !widget.isInitialCheck && !_animationCompleted;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Main content
           Center(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -118,8 +112,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ),
             ),
           ),
-
-          // ✅ Nút Skip chỉ hiện khi cần
           if (showSkipButton)
             Positioned(
               bottom: 40,
@@ -128,7 +120,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 opacity: _fadeAnimation,
                 child: GestureDetector(
                   onTap: () {
-                    // Cancel animation và chuyển ngay
                     _controller.stop();
                     _fadeController.stop();
                     _goToLoginScreen();
