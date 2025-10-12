@@ -125,6 +125,9 @@ class _CartScreenState extends State<CartScreen> {
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.black,
+                                        ),
                                         child: const Text('Hủy'),
                                       ),
                                       TextButton(

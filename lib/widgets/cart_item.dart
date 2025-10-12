@@ -152,6 +152,8 @@ class CartItemQuantityWidget extends StatelessWidget {
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(context),
+                                            style: TextButton.styleFrom(
+                                                foregroundColor: Colors.black),
                                             child: const Text('Hủy'),
                                           ),
                                           TextButton(
@@ -163,6 +165,8 @@ class CartItemQuantityWidget extends StatelessWidget {
                                                   item.quantity;
                                               Navigator.pop(context, qty);
                                             },
+                                            style: TextButton.styleFrom(
+                                                foregroundColor: Colors.green),
                                             child: const Text('OK'),
                                           ),
                                         ],

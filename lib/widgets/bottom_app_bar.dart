@@ -1,7 +1,6 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shoppingapp/screens/profile/address_screen.dart';
 import 'package:shoppingapp/screens/profile/profile_screen.dart';
 import '../screens/home/home_screen.dart' as app_home;
 import '../screens/main_screen.dart';
@@ -16,6 +15,30 @@ class BottomAppBarWidget extends StatefulWidget {
 
 class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
   int _selectedIndex = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final appState = context.watch<AppState>();
+    _updateSelectedIndexFromAppState(appState.currentTitle);
+  }
+
+  void _updateSelectedIndexFromAppState(String title) {
+    int newIndex = _selectedIndex;
+    if (title == 'Trang chủ') {
+      newIndex = 0;
+    } else if (title == 'Tìm kiếm') {
+      newIndex = 1;
+    } else if (title == 'Tài khoản') {
+      newIndex = 2;
+    }
+
+    if (newIndex != _selectedIndex) {
+      setState(() {
+        _selectedIndex = newIndex;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

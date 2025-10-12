@@ -5,9 +5,12 @@ import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
 import '../../utils/constants.dart';
 import '../../widgets/address_card.dart';
-import 'package:shoppingapp/screens/main_screen.dart';
+import '../main_screen.dart';
 import 'add_product_screen.dart';
 import 'add_voucher_screen.dart';
+import 'order_history_screen.dart';
+import 'order_screen.dart';
+import '../../services/order_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -18,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isAdmin = false;
+  final OrderService _orderService = OrderService();
 
   @override
   void initState() {
@@ -41,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         children: [
           _buildProfileHeader(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -57,8 +61,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 const AddressCard(),
+                const SizedBox(height: 20),
+                const Text(
+                  'Đơn hàng',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                _buildOrderSection(),
                 if (isAdmin) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   const Text(
                     'Admin',
                     style: TextStyle(
@@ -72,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     Icons.add_shopping_cart,
                     'Thêm sản phẩm',
-                    () {
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -85,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     Icons.local_offer,
                     'Thêm voucher',
-                    () {
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -94,8 +108,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 10),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
                 const Text(
                   'Tài khoản',
                   style: TextStyle(
@@ -105,12 +120,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildProfileItem(
-                  context,
-                  Icons.history,
-                  AppStrings.orderHistory,
-                  null,
-                ),
                 _buildProfileItem(
                   context,
                   Icons.favorite,
@@ -123,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   AppStrings.paymentMethods,
                   null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 const Text(
                   'Cài đặt',
                   style: TextStyle(
@@ -139,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   AppStrings.notifications,
                   null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 const Text(
                   'Hỗ trợ',
                   style: TextStyle(
@@ -161,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Về ứng dụng',
                   null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.logout, color: Color(0xFFE57373)),
@@ -187,6 +196,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildOrderSection() {
+    return StreamBuilder(
+      stream: _orderService.getUserOrdersStream(),
+      builder: (context, snapshot) {
+        int pendingCount = 0;
+
+        if (snapshot.hasData && snapshot.data != null) {
+          final orders = snapshot.data!;
+          pendingCount = orders.where((order) =>
+          order.status == 'pending' ||
+              order.status == 'preparing' ||
+              order.status == 'delivering'
+          ).length;
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildOrderCard(
+              context,
+              'assets/images/delivery.png',
+              'Đơn của bạn',
+              pendingCount > 0 ? pendingCount.toString() : '',
+              Colors.green,
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OrdersScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 60),
+            _buildOrderCard(
+              context,
+              'assets/images/history.png',
+              'Lịch sử',
+              '',
+              Colors.blue,
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OrderHistoryScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildProfileHeader() {
     final user = FirebaseAuth.instance.currentUser;
     final String userEmail = user?.email ?? 'Chưa có email';
@@ -208,8 +272,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: Colors.white,
               child: Image.asset(
                 'assets/images/profile_selected.png',
-                width: 50,
-                height: 50,
+                width: 40,
+                height: 40,
               ),
             ),
           ),
@@ -227,12 +291,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildOrderCard(
+      BuildContext context,
+      String imagePath,
+      String title,
+      String badge,
+      Color color,
+      VoidCallback onTap,
+      ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Image.asset(
+                  imagePath,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.contain,
+                ),
+                if (badge.isNotEmpty)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          badge,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    VoidCallback? onTap,
-  ) {
+      BuildContext context,
+      IconData icon,
+      String title,
+      VoidCallback? onTap,
+      ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -254,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: Color(0xFF757575),
         ),
         onTap: onTap ??
-            () {
+                () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Tính năng $title đang được phát triển'),
@@ -303,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const AuthGate()),
-                  (route) => false,
+                      (route) => false,
                 );
               },
               child: const Text(

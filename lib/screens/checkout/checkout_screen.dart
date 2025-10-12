@@ -79,89 +79,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         .where((item) => cartService.selectedItems.contains(item.productId))
         .toList();
 
-    if (selectedItems.isEmpty) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            'Thanh toán',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
-          ),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Chưa có sản phẩm nào',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Vui lòng chọn sản phẩm để thanh toán',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: 200,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, size: 20),
-                    label: const Text(
-                      'Quay lại',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     final formatCurrency = NumberFormat("#,###", "vi_VN");
 
     final subtotal = _calculateSubtotal(cartService);
@@ -335,10 +252,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
                       VoucherCard(
                         selectedVoucher: _selectedVoucher,
                         onTap: () async {
-                          final result = await showModalBottomSheet<Voucher>(
+                          final result = await showModalBottomSheet<dynamic>(
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
@@ -347,64 +265,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               currentVoucher: _selectedVoucher,
                             ),
                           );
-                          if (result != null) {
+                          if (result == 'REMOVE_VOUCHER') {
+                            setState(() {
+                              _selectedVoucher = null;
+                            });
+                          } else if (result != null && result is Voucher) {
                             setState(() {
                               _selectedVoucher = result;
                             });
                           }
                         },
                       ),
-                      if (_selectedVoucher != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.orange[200]!),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.local_offer, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _selectedVoucher!.title,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Giảm ${formatCurrency.format(discount)}đ',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedVoucher = null;
-                                    });
-                                  },
-                                  child: const Icon(Icons.close,
-                                      size: 18, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -566,79 +437,75 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildOrderItem(item, NumberFormat formatCurrency) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                item.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.image, color: Colors.grey, size: 30);
-                },
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  item.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.image,
+                        color: Colors.grey, size: 30);
+                  },
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${formatCurrency.format(item.price)}đ',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${formatCurrency.format(item.price)}đ',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.green,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'x${item.quantity}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Text(
-              'x${item.quantity}',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+                ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ));
   }
 
   Widget _buildPaymentOption(String value, IconData icon, String title) {
@@ -912,16 +779,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ? 'Thanh toán khi nhận hàng'
             : 'Chuyển khoản ngân hàng',
       );
-
-      await OrderService().createOrder(order);
-
-      if (_selectedVoucher != null && _selectedVoucher!.id != null) {
-        await VoucherService().incrementVoucherUsage(_selectedVoucher!.id!);
-      }
-
-      for (var item in selectedItems) {
-        await cartService.removeItem(item.productId);
-      }
+      final orderId = await OrderService().createOrder(order);
+      final orderWithId = models.Order(
+        orderId: orderId,
+        userId: order.userId,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        subtotalAmount: order.subtotalAmount,
+        discount: order.discount,
+        voucherCode: order.voucherCode,
+        voucherId: order.voucherId,
+        deliveryAddress: order.deliveryAddress,
+        note: order.note,
+        paymentMethod: order.paymentMethod,
+        status: order.status,
+        createdAt: order.createdAt,
+      );
+      await Future.wait([
+        if (_selectedVoucher != null && _selectedVoucher!.id != null)
+          VoucherService().incrementVoucherUsage(_selectedVoucher!.id!),
+        ...selectedItems.map((item) => cartService.removeItem(item.productId)),
+      ]);
 
       setState(() {
         _isProcessing = false;
@@ -931,7 +809,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => OrderSuccessScreen(order: order),
+            builder: (context) => OrderSuccessScreen(order: orderWithId),
           ),
         );
       }

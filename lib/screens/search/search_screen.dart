@@ -212,8 +212,8 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               if (cartService.itemCount > 0)
                 Positioned(
-                  right: 8,
-                  top: 8,
+                  right: 5,
+                  top: 4,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(

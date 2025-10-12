@@ -1,11 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/order_model.dart';
+import '../../services/order_status_service.dart';
+import '../profile/order_screen.dart';
 
-class OrderSuccessScreen extends StatelessWidget {
+class OrderSuccessScreen extends StatefulWidget {
   final Order order;
 
   const OrderSuccessScreen({super.key, required this.order});
+
+  @override
+  State<OrderSuccessScreen> createState() => _OrderSuccessScreenState();
+}
+
+class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
+  final OrderStatusService _statusService = OrderStatusService();
+
+  @override
+  void initState() {
+    super.initState();
+    _statusService.startStatusUpdater();
+  }
+
+  @override
+  void dispose() {
+    _statusService.stopStatusUpdater();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +34,6 @@ class OrderSuccessScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () =>
-              Navigator.of(context).popUntil((route) => route.isFirst),
-        ),
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -72,44 +84,43 @@ class OrderSuccessScreen extends StatelessWidget {
                         children: [
                           _buildInfoRow(
                             'Mã đơn hàng',
-                            '#${order.orderId?.substring(0, 8).toUpperCase() ?? 'N/A'}',
-                            isBold: true,
+                            '#${widget.order.orderId?.substring(0, 8).toUpperCase() ?? 'N/A'}',
                           ),
                           const Divider(height: 24),
                           _buildInfoRow(
                             'Số sản phẩm',
-                            '${order.items.length} sản phẩm',
+                            '${widget.order.items.length} sản phẩm',
                           ),
                           const SizedBox(height: 12),
                           _buildInfoRow(
                             'Tổng tiền',
-                            '${formatCurrency.format(order.totalAmount)}đ',
+                            '${formatCurrency.format(widget.order.totalAmount)}đ',
                             isAmount: true,
                           ),
-                          if (order.discount > 0) ...[
+                          if (widget.order.discount > 0) ...[
                             const SizedBox(height: 12),
                             _buildInfoRow(
                               'Đã tiết kiệm',
-                              '${formatCurrency.format(order.discount)}đ',
+                              '${formatCurrency.format(widget.order.discount)}đ',
                               isDiscount: true,
                             ),
                           ],
                           const Divider(height: 24),
                           _buildInfoRow(
                             'Phương thức thanh toán',
-                            order.paymentMethod,
+                            widget.order.paymentMethod,
                             maxLines: 2,
                           ),
                           const SizedBox(height: 12),
                           _buildInfoRow(
                             'Địa chỉ giao hàng',
-                            order.deliveryAddress,
+                            widget.order.deliveryAddress,
                             maxLines: 3,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -157,8 +168,13 @@ class OrderSuccessScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context)
-                            .popUntil((route) => route.isFirst);
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrdersScreen(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
@@ -213,9 +229,9 @@ class OrderSuccessScreen extends StatelessWidget {
 
   Widget _buildInfoRow(String label, String value,
       {bool isBold = false,
-      bool isAmount = false,
-      bool isDiscount = false,
-      int maxLines = 1}) {
+        bool isAmount = false,
+        bool isDiscount = false,
+        int maxLines = 1}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,12 +250,12 @@ class OrderSuccessScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight:
-                  isBold || isAmount ? FontWeight.w600 : FontWeight.normal,
+              isBold || isAmount ? FontWeight.w600 : FontWeight.normal,
               color: isAmount
                   ? Colors.green
                   : isDiscount
-                      ? Colors.orange[700]
-                      : Colors.black,
+                  ? Colors.orange[700]
+                  : Colors.black,
             ),
             textAlign: TextAlign.right,
             maxLines: maxLines,

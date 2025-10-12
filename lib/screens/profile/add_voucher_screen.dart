@@ -228,7 +228,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   {
     "code": "GIAM10",
     "title": "Giảm 10%",
-    "description": "Giảm 10% cho đơn hàng từ 200.000đ",
+    "description": "Giảm 10% tối đã 50.000đ cho đơn hàng từ 200.000đ",
     "type": "percentage",
     "value": 10,
     "maxDiscount": 50000,
@@ -237,17 +237,6 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
     "isActive": true,
     "usageLimit": 100
   },
-  {
-    "code": "FREESHIP",
-    "title": "Miễn phí vận chuyển",
-    "description": "Giảm 30.000đ phí ship cho đơn từ 100.000đ",
-    "type": "fixed",
-    "value": 30000,
-    "minOrderAmount": 100000,
-    "expiryDate": "2025-12-31T23:59:59.000Z",
-    "isActive": true,
-    "usageLimit": -1
-  }
 ]
 
 Lưu ý:

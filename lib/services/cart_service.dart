@@ -12,6 +12,17 @@ class CartService extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
 
+  // Constructor - Tự động khởi tạo khi có user
+  CartService() {
+    _auth.authStateChanges().listen((user) {
+      if (user != null && !_isInitialized) {
+        initialize();
+      } else if (user == null) {
+        reset();
+      }
+    });
+  }
+
   Map<String, CartItem> get items => _items;
 
   Set<String> get selectedItems => _selectedItems;
@@ -92,11 +103,11 @@ class CartService extends ChangeNotifier {
   }
 
   Future<bool> addItem(
-    String productId,
-    String name,
-    double price,
-    String imageUrl,
-  ) async {
+      String productId,
+      String name,
+      double price,
+      String imageUrl,
+      ) async {
     if (_userId == null) return false;
 
     try {
@@ -288,7 +299,7 @@ class CartService extends ChangeNotifier {
           _selectedItems.remove(productId);
         } else if (cartItem.quantity > currentStock) {
           errors[productId] =
-              'Sản phẩm "${cartItem.name}" chỉ còn $currentStock';
+          'Sản phẩm "${cartItem.name}" chỉ còn $currentStock';
           await updateQuantity(productId, currentStock);
         }
       } catch (e) {

@@ -186,8 +186,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (cartService.itemCount > 0)
                 Positioned(
-                  right: 8,
-                  top: 8,
+                  right: 5,
+                  top: 4,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       autoPlay: true,
                       autoPlayInterval: const Duration(seconds: 8),
                       autoPlayAnimationDuration:
-                      const Duration(milliseconds: 1500),
+                          const Duration(milliseconds: 1500),
                       enlargeCenterPage: true,
                       onPageChanged: (index, reason) {
                         setState(() {
@@ -328,9 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
               SizedBox(
                 height: 100,
                 child: ListView.builder(
@@ -391,9 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-
               const SizedBox(height: 16),
-
               if (_isSwitchingCategory)
                 const Center(
                   child: Padding(
