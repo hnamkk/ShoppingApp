@@ -8,6 +8,7 @@ import '../../widgets/address_card.dart';
 import '../main_screen.dart';
 import 'add_product_screen.dart';
 import 'add_voucher_screen.dart';
+import 'favorite_screen.dart';
 import 'order_history_screen.dart';
 import 'order_screen.dart';
 import '../../services/order_service.dart';
@@ -123,8 +124,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildProfileItem(
                   context,
                   Icons.favorite,
-                  AppStrings.favorites,
-                  null,
+                  "Sản phẩm yêu thích",
+                      () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FavoriteScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildProfileItem(
                   context,

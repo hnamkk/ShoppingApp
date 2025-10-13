@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import '../../services/cart_service.dart';
+import '../../services/favorite_service.dart';
 import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -80,6 +81,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
+    final favoriteService = Provider.of<FavoriteService>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -110,8 +112,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               if (cartService.itemCount > 0)
                 Positioned(
-                  right: 8,
-                  top: 8,
+                  right: 5,
+                  top: 4,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
@@ -152,6 +154,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           final product = Product.fromFirestore(
               snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id);
 
+          final isFavorite = favoriteService.isFavorite(product.id);
+
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,8 +185,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.favorite_border),
-                            onPressed: () {},
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : Colors.grey,
+                              size: 28,
+                            ),
+                            onPressed: () async {
+                              await favoriteService.toggleFavorite(product.id);
+                              if (!mounted) return;
+                            },
                           ),
                         ],
                       ),
