@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterController {
@@ -44,7 +45,9 @@ class RegisterController {
           await _auth.signInWithCredential(credential);
       return userCredential.user?.uid ?? "";
     } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Error: ${e.code} - ${e.message}');
+      if (kDebugMode) {
+        print('Firebase Auth Error: ${e.code} - ${e.message}');
+      }
 
       if (e.code == 'account-exists-with-different-credential') {
         return 'Tài khoản đã tồn tại với phương thức đăng nhập khác.';
@@ -58,7 +61,9 @@ class RegisterController {
         return 'Lỗi Firebase: ${e.message ?? "Không xác định"}';
       }
     } on Exception catch (e) {
-      print('Google Sign In Error: ${e.toString()}');
+      if (kDebugMode) {
+        print('Google Sign In Error: ${e.toString()}');
+      }
       if (e.toString().contains('SIGN_IN_FAILED')) {
         return 'Đăng nhập Google thất bại. Vui lòng thử lại.';
       } else if (e.toString().contains('NETWORK_ERROR')) {
@@ -69,7 +74,9 @@ class RegisterController {
         return 'Lỗi đăng nhập Google: ${e.toString()}';
       }
     } catch (e) {
-      print('Unexpected error: ${e.toString()}');
+      if (kDebugMode) {
+        print('Unexpected error: ${e.toString()}');
+      }
       return 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.';
     }
   }
@@ -79,7 +86,9 @@ class RegisterController {
       final signInMethods = await _auth.fetchSignInMethodsForEmail(email);
       return signInMethods.isNotEmpty;
     } catch (e) {
-      print('Error checking email: $e');
+      if (kDebugMode) {
+        print('Error checking email: $e');
+      }
       return false;
     }
   }
@@ -90,7 +99,9 @@ class RegisterController {
       await _auth.signOut();
       return true;
     } catch (e) {
-      print('Logout error: $e');
+      if (kDebugMode) {
+        print('Logout error: $e');
+      }
       try {
         await _auth.signOut();
       } catch (_) {}

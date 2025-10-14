@@ -50,7 +50,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       } else if (jsonData is Map) {
         products = [jsonData.cast<String, dynamic>()];
       } else {
-        throw FormatException('Định dạng JSON không hợp lệ');
+        throw const FormatException('Định dạng JSON không hợp lệ');
       }
 
       final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -60,7 +60,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       for (var product in products) {
         if (!product.containsKey('name') || !product.containsKey('price')) {
-          throw FormatException('Sản phẩm phải có trường "name" và "price"');
+          throw const FormatException('Sản phẩm phải có trường "name" và "price"');
         }
 
         String productName = product['name'];
@@ -211,10 +211,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _showExampleJson() {
-    final exampleJson = '''
+    const exampleJson = '''
 [
   {
-    "name": "Chuối tây 500gr",
+    "name": "Chuối tiêu 500gr",
     "price": 19000,
     "category": "Trái cây",
     "description": "Chuối thơm ngon",
@@ -225,11 +225,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
     "stock": 300,
     "sold": 127,
     "featured": true,
-    "tags": ["Hoa quả", "Trái cây", "Chuối"]
+    "tags": ["Hoa quả", "Trái cây", "Chuối", "Chuối tiêu"]
   },
   {
     "name": "Táo Fuji",
-    "price": 35000,
+    "price": 100000,
     "category": "Trái cây",
     "description": "Táo Fuji nhập khẩu",
     "imageUrl": "https://example.com/apple.jpg",
@@ -245,10 +245,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Ví dụ JSON'),
-        content: SingleChildScrollView(
+        content: const SingleChildScrollView(
           child: SelectableText(
             exampleJson,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            style: TextStyle(fontFamily: 'monospace', fontSize: 12),
           ),
         ),
         actions: [

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
@@ -62,7 +63,9 @@ class LoginController {
       String uid = userCredential.user!.uid;
       return uid;
     } catch (e) {
-      print('Lỗi đăng nhập: ${e.toString()}');
+      if (kDebugMode) {
+        print('Lỗi đăng nhập: ${e.toString()}');
+      }
       return '';
     }
   }
@@ -81,7 +84,9 @@ class LoginController {
       try {
         await _auth.signOut();
       } catch (e2) {
-        print('LoginController: Fallback also failed: $e2');
+        if (kDebugMode) {
+          print('LoginController: Fallback also failed: $e2');
+        }
       }
       return false;
     }

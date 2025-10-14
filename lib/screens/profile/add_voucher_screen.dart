@@ -61,7 +61,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
           vouchers = [jsonData.cast<String, dynamic>()];
         }
       } else {
-        throw FormatException('Định dạng JSON không hợp lệ');
+        throw const FormatException('Định dạng JSON không hợp lệ');
       }
 
       int successCount = 0;
@@ -72,7 +72,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
         if (!voucherData.containsKey('code') ||
             !voucherData.containsKey('title') ||
             !voucherData.containsKey('value')) {
-          throw FormatException(
+          throw const FormatException(
               'Voucher phải có trường "code", "title" và "value"');
         }
 
@@ -223,7 +223,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   }
 
   void _showExampleJson() {
-    final exampleJson = '''
+    const exampleJson = '''
 [
   {
     "code": "GIAM10",
@@ -250,10 +250,10 @@ Lưu ý:
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Ví dụ JSON'),
-        content: SingleChildScrollView(
+        content: const SingleChildScrollView(
           child: SelectableText(
             exampleJson,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            style: TextStyle(fontFamily: 'monospace', fontSize: 12),
           ),
         ),
         actions: [

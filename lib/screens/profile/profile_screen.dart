@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
-import '../../utils/constants.dart';
 import '../../widgets/address_card.dart';
 import '../main_screen.dart';
 import 'add_product_screen.dart';
@@ -14,7 +13,7 @@ import 'order_screen.dart';
 import '../../services/order_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -23,11 +22,18 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isAdmin = false;
   final OrderService _orderService = OrderService();
+  final TextEditingController _suggestionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _checkAdminStatus();
+  }
+
+  @override
+  void dispose() {
+    _suggestionController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkAdminStatus() async {
@@ -87,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     Icons.add_shopping_cart,
                     'Thêm sản phẩm',
-                        () {
+                    () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -100,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     Icons.local_offer,
                     'Thêm voucher',
-                        () {
+                    () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -125,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   context,
                   Icons.favorite,
                   "Sản phẩm yêu thích",
-                      () {
+                  () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -135,11 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 _buildProfileItem(
-                  context,
-                  Icons.payment,
-                  AppStrings.paymentMethods,
-                  null,
-                ),
+                    context, Icons.payment, "Phương thức thanh toán", null),
                 const SizedBox(height: 20),
                 const Text(
                   'Cài đặt',
@@ -153,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildProfileItem(
                   context,
                   Icons.notifications,
-                  AppStrings.notifications,
+                  "Thông báo",
                   null,
                 ),
                 const SizedBox(height: 20),
@@ -169,14 +171,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildProfileItem(
                   context,
                   Icons.mail,
-                  AppStrings.suggestion,
-                  null,
+                  "Góp ý",
+                  () => _showSuggestionDialog(context),
                 ),
                 _buildProfileItem(
                   context,
                   Icons.info,
                   'Về ứng dụng',
-                  null,
+                  () => _showAboutDialog(context),
                 ),
                 const SizedBox(height: 20),
                 Card(
@@ -212,11 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         if (snapshot.hasData && snapshot.data != null) {
           final orders = snapshot.data!;
-          pendingCount = orders.where((order) =>
-          order.status == 'pending' ||
-              order.status == 'preparing' ||
-              order.status == 'delivering'
-          ).length;
+          pendingCount = orders
+              .where((order) =>
+                  order.status == 'pending' ||
+                  order.status == 'preparing' ||
+                  order.status == 'delivering')
+              .length;
         }
 
         return Row(
@@ -228,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Đơn của bạn',
               pendingCount > 0 ? pendingCount.toString() : '',
               Colors.green,
-                  () {
+              () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -244,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Lịch sử',
               '',
               Colors.blue,
-                  () {
+              () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -300,13 +303,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildOrderCard(
-      BuildContext context,
-      String imagePath,
-      String title,
-      String badge,
-      Color color,
-      VoidCallback onTap,
-      ) {
+    BuildContext context,
+    String imagePath,
+    String title,
+    String badge,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -369,11 +372,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileItem(
-      BuildContext context,
-      IconData icon,
-      String title,
-      VoidCallback? onTap,
-      ) {
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback? onTap,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -394,17 +397,414 @@ class _ProfileScreenState extends State<ProfileScreen> {
           size: 16,
           color: Color(0xFF757575),
         ),
-        onTap: onTap ??
-                () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Tính năng $title đang được phát triển'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
+        onTap: onTap ?? () {},
       ),
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Column(
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/logo.png'),
+                    width: 130,
+                    height: 130,
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Về chúng tôi',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Freshmart là ứng dụng mua sắm trực tuyến mang đến trải nghiệm tiện lợi và nhanh chóng với hàng ngàn sản phẩm tươi ngon mỗi ngày.\n\n'
+                          'Hiện Freshmart đã chính thức phục vụ khu vực Hà Nội và sẽ sớm mở rộng đến nhiều tỉnh thành khác trên cả nước.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                        Icons.email, 'Email', 'support@freshmart.com'),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(Icons.phone, 'Hotline', '1900 8386'),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                        Icons.language, 'Website', 'www.freshmart.com'),
+                  ],
+                ),
+              ),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Đóng',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.green),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black45,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showSuggestionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.mail_outline,
+                          color: Color(0xFF4CAF50),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Góp ý & Phản hồi',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Chia sẻ ý kiến của bạn với chúng tôi',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _suggestionController,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          hintText: 'Nhập góp ý của bạn...',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                                color: Color(0xFF4CAF50), width: 2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                color: Colors.blue[700], size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Góp ý của bạn sẽ được gửi đến đội ngũ phát triển',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue[900],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          _suggestionController.clear();
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Hủy',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4CAF50),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () {
+                          if (_suggestionController.text.trim().isNotEmpty) {
+                            // final suggestion =
+                            //     _suggestionController.text.trim();
+                            _suggestionController.clear();
+                            Navigator.of(context).pop();
+
+                            _showThankYouDialog(context);
+                          } else {
+                            _showWarningDialog(context);
+                          }
+                        },
+                        child: const Text(
+                          'Gửi góp ý',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showThankYouDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  size: 60,
+                  color: Color(0xFF4CAF50),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Cảm ơn bạn!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Góp ý của bạn đã được gửi thành công.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 60,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Thiếu thông tin',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Vui lòng nhập nội dung góp ý trước khi gửi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -422,7 +822,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               child: const Text(
-                AppStrings.cancel,
+                "Hủy",
                 style: TextStyle(color: Color(0xFF757575)),
               ),
               onPressed: () {
@@ -444,7 +844,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const AuthGate()),
-                      (route) => false,
+                  (route) => false,
                 );
               },
               child: const Text(
