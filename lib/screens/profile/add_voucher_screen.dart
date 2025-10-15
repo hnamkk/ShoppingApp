@@ -158,7 +158,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
             children: [
               if (successCount > 0) ...[
                 Text(
-                  '✓ Đã thêm thành công: $successCount voucher',
+                  'Đã thêm thành công: $successCount voucher',
                   style: const TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -168,7 +168,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
               ],
               if (duplicateCount > 0) ...[
                 Text(
-                  '⚠ Bỏ qua (trùng lặp): $duplicateCount voucher',
+                  'Bỏ qua (trùng lặp): $duplicateCount voucher',
                   style: const TextStyle(
                     color: Colors.orange,
                     fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: const Text('Đóng', style: TextStyle(color: Colors.black54)),
           ),
         ],
       ),
@@ -217,7 +217,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(milliseconds: 1500),
       ),
     );
   }
@@ -228,15 +228,15 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   {
     "code": "GIAM10",
     "title": "Giảm 10%",
-    "description": "Giảm 10% tối đã 50.000đ cho đơn hàng từ 200.000đ",
+    "description": "Giảm 10% tối đa 50.000đ cho đơn hàng từ 00.000đ",
     "type": "percentage",
     "value": 10,
     "maxDiscount": 50000,
-    "minOrderAmount": 200000,
+    "minOrderAmount": 300000,
     "expiryDate": "2025-12-31T23:59:59.000Z",
     "isActive": true,
     "usageLimit": 100
-  },
+  }
 ]
 
 Lưu ý:
@@ -262,11 +262,11 @@ Lưu ý:
               _jsonController.text = exampleJson.split('\n\nLưu ý:')[0];
               Navigator.pop(context);
             },
-            child: const Text('Sử dụng ví dụ'),
+            child: const Text('Sử dụng ví dụ', style: TextStyle(color: Colors.green)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: const Text('Đóng', style: TextStyle(color: Colors.black54)),
           ),
         ],
       ),
@@ -277,7 +277,18 @@ Lưu ý:
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thêm Voucher'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Thêm Voucher',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
@@ -309,14 +320,17 @@ Lưu ý:
                       'Kiểm tra trùng',
                       style: TextStyle(fontSize: 14),
                     ),
-                    Switch(
-                      value: _checkDuplicates,
-                      onChanged: (value) {
-                        setState(() {
-                          _checkDuplicates = value;
-                        });
-                      },
-                      activeColor: Colors.green,
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: _checkDuplicates,
+                        onChanged: (value) {
+                          setState(() {
+                            _checkDuplicates = value;
+                          });
+                        },
+                        activeColor: Colors.green,
+                      ),
                     ),
                   ],
                 ),

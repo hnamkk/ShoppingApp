@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:shoppingapp/screens/profile/profile_screen.dart';
 import '../screens/home/home_screen.dart' as app_home;
 import '../screens/main_screen.dart';
+import '../screens/notification/notification_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../widgets/notification_helper.dart';
 
 class BottomAppBarWidget extends StatefulWidget {
   const BottomAppBarWidget({super.key});
@@ -29,8 +31,10 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
       newIndex = 0;
     } else if (title == 'Tìm kiếm') {
       newIndex = 1;
-    } else if (title == 'Tài khoản') {
+    } else if (title == 'Thông báo') {
       newIndex = 2;
+    } else if (title == 'Tài khoản') {
+      newIndex = 3;
     }
 
     if (newIndex != _selectedIndex) {
@@ -58,6 +62,12 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
           icon: Image.asset('assets/images/search.png'),
           activeIcon: Image.asset('assets/images/search_selected.png'),
           title: 'Tìm kiếm',
+        ),
+        // Notification với badge
+        TabItem(
+          icon: _buildNotificationIcon(false),
+          activeIcon: _buildNotificationIcon(true),
+          title: 'Thông báo',
         ),
         TabItem(
           icon: Image.asset('assets/images/profile.png'),
@@ -88,11 +98,66 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
             break;
           case 2:
             appState.updateScreen(
+              'Thông báo',
+              const NotificationScreen(),
+            );
+            break;
+          case 3:
+            appState.updateScreen(
               'Tài khoản',
               const ProfileScreen(),
             );
             break;
         }
+      },
+    );
+  }
+
+  // Build notification icon với badge
+  Widget _buildNotificationIcon(bool isActive) {
+    return StreamBuilder<int>(
+      stream: NotificationHelper.getUnreadCountStream(),
+      initialData: 0,
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.data ?? 0;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Image.asset(
+              isActive
+                  ? 'assets/images/notification_selected.png'
+                  : 'assets/images/notification.png',
+            ),
+            if (unreadCount > 0)
+              Positioned(
+                right: -5,
+                top: -6,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  child: Center(
+                    child: Text(
+                      unreadCount > 99 ? '99+' : unreadCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
       },
     );
   }

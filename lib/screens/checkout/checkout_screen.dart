@@ -7,10 +7,12 @@ import '../../models/order_model.dart' as models;
 import '../../models/address_model.dart';
 import '../../models/voucher_model.dart';
 import '../../services/cart_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/order_service.dart';
 import '../../services/address_service.dart';
 import '../../services/voucher_service.dart';
 import '../../widgets/address_card.dart';
+import '../../widgets/notification_helper.dart';
 import '../../widgets/voucher_card.dart';
 import 'order_success_screen.dart';
 
@@ -801,6 +803,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ...selectedItems.map((item) => cartService.removeItem(item.productId)),
       ]);
 
+      try {
+        await NotificationHelper.createNotification(
+          title: 'Đặt hàng thành công',
+          message:
+              'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} với tổng giá trị ${_formatCurrency(totalAmount)} đã được đặt thành công. Chúng tôi sẽ xử lý đơn hàng của bạn ngay.',
+          type: 'order',
+          orderId: orderId,
+          additionalData: {
+            'totalAmount': totalAmount,
+            'itemCount': selectedItems.length,
+          },
+        );
+
+        await NotificationService().showOrderNotification(
+          'Đặt hàng thành công!',
+          'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được đặt. Cảm ơn bạn đã mua hàng!',
+          orderId,
+        );
+      } catch (notificationError) {
+        print('Lỗi khi gửi notification: $notificationError');
+      }
+
       setState(() {
         _isProcessing = false;
       });
@@ -854,5 +878,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         duration: Duration(seconds: isError ? 4 : 3),
       ),
     );
+  }
+
+  String _formatCurrency(double amount) {
+    return '${amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        )}₫';
   }
 }

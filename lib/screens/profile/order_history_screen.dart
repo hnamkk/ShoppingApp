@@ -58,16 +58,16 @@ class OrderHistoryScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             'Lịch sử mua hàng',
             style: TextStyle(
-              color: Colors.black,
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),

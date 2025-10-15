@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
 import '../../widgets/address_card.dart';
+import '../../services/notification_service.dart';
 import '../main_screen.dart';
 import 'add_product_screen.dart';
 import 'add_voucher_screen.dart';
@@ -21,13 +23,16 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isAdmin = false;
+  bool _notificationsEnabled = true;
   final OrderService _orderService = OrderService();
+  final NotificationService _notificationService = NotificationService();
   final TextEditingController _suggestionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _checkAdminStatus();
+    _loadNotificationPreference();
   }
 
   @override
@@ -43,6 +48,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         isAdmin = idTokenResult.claims?['admin'] == true;
       });
+    }
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'notifications_enabled_${user.uid}';
+    setState(() {
+      _notificationsEnabled = prefs.getBool(key) ?? true;
+    });
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'notifications_enabled_${user.uid}';
+    await prefs.setBool(key, value);
+
+    setState(() {
+      _notificationsEnabled = value;
+    });
+
+    if (value) {
+      final hasPermission =
+          await _notificationService.hasNotificationPermission();
+      if (!hasPermission) {
+        await _notificationService.initialize();
+      }
+    } else {
+      await _notificationService.cancelAllNotifications();
     }
   }
 
@@ -140,24 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                _buildProfileItem(
-                    context, Icons.payment, "Phương thức thanh toán", null),
-                const SizedBox(height: 20),
-                const Text(
-                  'Cài đặt',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildProfileItem(
-                  context,
-                  Icons.notifications,
-                  "Thông báo",
-                  null,
-                ),
+                _buildNotificationSwitch(),
                 const SizedBox(height: 20),
                 const Text(
                   'Hỗ trợ',
@@ -202,6 +224,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationSwitch() {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        leading: Icon(
+          _notificationsEnabled
+              ? Icons.notifications_active
+              : Icons.notifications_off,
+          color: _notificationsEnabled ? Colors.green : Colors.grey,
+        ),
+        title: const Text(
+          'Thông báo đẩy',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: Transform.translate(
+          offset: const Offset(16, 0),
+          child: Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: _notificationsEnabled,
+              onChanged: _toggleNotifications,
+              activeColor: Colors.green,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -438,7 +496,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Freshmart là ứng dụng mua sắm trực tuyến mang đến trải nghiệm tiện lợi và nhanh chóng với hàng ngàn sản phẩm tươi ngon mỗi ngày.\n\n'
-                          'Hiện Freshmart đã chính thức phục vụ khu vực Hà Nội và sẽ sớm mở rộng đến nhiều tỉnh thành khác trên cả nước.',
+                      'Hiện Freshmart đã chính thức phục vụ khu vực Hà Nội và sẽ sớm mở rộng đến nhiều tỉnh thành khác trên cả nước.',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -456,15 +514,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Đóng',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green,
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20, bottom: 12),
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Đóng',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
                 ),
@@ -670,11 +732,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         onPressed: () {
                           if (_suggestionController.text.trim().isNotEmpty) {
-                            // final suggestion =
-                            //     _suggestionController.text.trim();
                             _suggestionController.clear();
                             Navigator.of(context).pop();
-
                             _showThankYouDialog(context);
                           } else {
                             _showWarningDialog(context);

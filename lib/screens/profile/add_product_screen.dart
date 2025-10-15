@@ -60,7 +60,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       for (var product in products) {
         if (!product.containsKey('name') || !product.containsKey('price')) {
-          throw const FormatException('Sản phẩm phải có trường "name" và "price"');
+          throw const FormatException(
+              'Sản phẩm phải có trường "name" và "price"');
         }
 
         String productName = product['name'];
@@ -193,7 +194,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: const Text('Đóng', style: TextStyle(color: Colors.black54)),
           ),
         ],
       ),
@@ -205,7 +206,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(milliseconds: 1500),
       ),
     );
   }
@@ -257,11 +258,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
               _jsonController.text = exampleJson.split('\n\nLưu ý:')[0];
               Navigator.pop(context);
             },
-            child: const Text('Sử dụng ví dụ'),
+            child: const Text('Sử dụng ví dụ', style: TextStyle(color: Colors.green)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: const Text('Đóng', style: TextStyle(color: Colors.black54)),
           ),
         ],
       ),
@@ -272,8 +273,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thêm sản phẩm'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Thêm sản phẩm',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
@@ -303,14 +316,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       'Kiểm tra trùng',
                       style: TextStyle(fontSize: 14),
                     ),
-                    Switch(
-                      value: _checkDuplicates,
-                      onChanged: (value) {
-                        setState(() {
-                          _checkDuplicates = value;
-                        });
-                      },
-                      activeColor: Colors.green,
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: _checkDuplicates,
+                        onChanged: (value) {
+                          setState(() {
+                            _checkDuplicates = value;
+                          });
+                        },
+                        activeColor: Colors.green,
+                      ),
                     ),
                   ],
                 ),

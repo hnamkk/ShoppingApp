@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/order_model.dart';
 import '../../services/order_service.dart';
+import '../../widgets/notification_helper.dart';
 
-class OrderDetailScreen extends StatelessWidget {
+class OrderDetailScreen extends StatefulWidget {
   final String orderId;
 
   const OrderDetailScreen({super.key, required this.orderId});
+
+  @override
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final OrderService _orderService = OrderService();
 
   String _getStatusText(String status) {
     switch (status) {
@@ -59,10 +67,88 @@ class OrderDetailScreen extends StatelessWidget {
     }
   }
 
+  bool _canCancelOrder(String status) {
+    return status == 'pending' || status == 'preparing';
+  }
+
+  Future<void> _showCancelDialog(Order order) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Text('Huỷ đơn hàng'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bạn có chắc chắn muốn huỷ đơn hàng này không?',
+              style: TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Không',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.red.shade300),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Huỷ đơn'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _cancelOrder();
+    }
+  }
+
+  Future<void> _cancelOrder() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.green),
+        ),
+      );
+
+      await _orderService.cancelOrder(widget.orderId);
+
+      if (mounted) {
+        Navigator.pop(context);
+
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final formatCurrency = NumberFormat("#,###", "vi_VN");
-    final orderService = OrderService();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -84,7 +170,7 @@ class OrderDetailScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: FutureBuilder<Order?>(
-        future: orderService.getOrderById(orderId),
+        future: _orderService.getOrderById(widget.orderId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -110,13 +196,13 @@ class OrderDetailScreen extends StatelessWidget {
           final statusColor = _getStatusColor(order.status);
           final statusIcon = _getStatusIcon(order.status);
           final statusText = _getStatusText(order.status);
+          final canCancel = _canCancelOrder(order.status);
 
           return SingleChildScrollView(
             child: Column(
               children: [
                 const SizedBox(height: 8),
                 Container(
-                  color: Colors.white,
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
@@ -337,6 +423,39 @@ class OrderDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (canCancel) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => _showCancelDialog(order),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: Colors.red.shade300,
+                            width: 1.5,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Huỷ đơn hàng',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.red.shade400,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
               ],
             ),

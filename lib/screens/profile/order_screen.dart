@@ -90,18 +90,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Đơn hàng',
           style: TextStyle(
-            color: Colors.black,
             fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontSize: 20,
           ),
         ),
         centerTitle: true,
@@ -375,7 +375,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           content: const Text(
-            'Bạn có chắc chắn muốn Huỷ đơn hàng này không?',
+            'Bạn có chắc chắn muốn huỷ đơn hàng này không?',
             style: TextStyle(fontSize: 15),
           ),
           actions: [

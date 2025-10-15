@@ -57,7 +57,9 @@ dependencies:
   carousel_slider:
   intl:
   diacritic:
-
+  firebase_messaging:
+  flutter_local_notifications:
+  timezone:
 dev_dependencies:
   flutter_test:
     sdk: flutter

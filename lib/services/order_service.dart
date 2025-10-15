@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order_model.dart' as models;
+import '../services/notification_service.dart';
+import '../widgets/notification_helper.dart';
 
 class OrderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -57,8 +60,15 @@ class OrderService {
     }
   }
 
+  Future<bool> _isNotificationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('notifications_enabled') ?? true;
+  }
+
   Future<void> cancelOrder(String orderId) async {
     try {
+      String? userId;
+
       await _firestore.runTransaction((transaction) async {
         final orderRef = _firestore.collection('orders').doc(orderId);
         final orderDoc = await transaction.get(orderRef);
@@ -69,6 +79,8 @@ class OrderService {
 
         final orderData = orderDoc.data()!;
         final currentStatus = orderData['status'] ?? 'pending';
+
+        userId = orderData['userId'] as String?;
 
         if (currentStatus != 'pending' && currentStatus != 'preparing') {
           throw Exception('Không thể hủy đơn hàng ở trạng thái $currentStatus');
@@ -84,7 +96,6 @@ class OrderService {
           productDocs[productId] = productDoc;
         }
 
-        // GHI TẤT CẢ SAU
         for (var itemData in items) {
           final productId = itemData['productId'];
           final quantity = itemData['quantity'] ?? 0;
@@ -108,6 +119,24 @@ class OrderService {
           'cancelledAt': FieldValue.serverTimestamp(),
         });
       });
+
+      if (userId != null) {
+        await NotificationHelper.sendOrderStatusNotification(
+          orderId,
+          'cancelled',
+          userId: userId,
+        );
+      }
+
+      final notificationEnabled = await _isNotificationEnabled();
+      if (notificationEnabled) {
+        final notificationService = NotificationService();
+        await notificationService.showOrderNotification(
+          'Đơn hàng đã hủy',
+          'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được hủy',
+          orderId,
+        );
+      }
     } catch (e) {
       throw Exception('Lỗi khi hủy đơn hàng: $e');
     }
@@ -115,10 +144,21 @@ class OrderService {
 
   Future<void> updateOrderStatus(String orderId, String status) async {
     try {
+      final orderDoc = await _firestore.collection('orders').doc(orderId).get();
+      final userId = orderDoc.data()?['userId'] as String?;
+
       await _firestore.collection('orders').doc(orderId).update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      if (userId != null) {
+        await NotificationHelper.sendOrderStatusNotification(
+          orderId,
+          status,
+          userId: userId,
+        );
+      }
     } catch (e) {
       throw Exception('Lỗi khi cập nhật trạng thái: $e');
     }

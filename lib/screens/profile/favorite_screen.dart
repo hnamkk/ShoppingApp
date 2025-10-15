@@ -16,15 +16,13 @@ class FavoriteScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Sản phẩm yêu thích',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
         ),
-        backgroundColor: Colors.white,
+        centerTitle: true,
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
