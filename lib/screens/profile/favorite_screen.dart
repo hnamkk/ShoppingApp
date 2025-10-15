@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
@@ -139,7 +140,9 @@ class FavoriteScreen extends StatelessWidget {
 
       return products;
     } catch (e) {
-      print('Error loading favorite products: $e');
+      if (kDebugMode) {
+        print('Error loading favorite products: $e');
+      }
       return [];
     }
   }

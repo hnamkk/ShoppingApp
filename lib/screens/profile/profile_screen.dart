@@ -6,7 +6,7 @@ import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
 import '../../widgets/address_card.dart';
 import '../../services/notification_service.dart';
-import '../main_screen.dart';
+import '../main_screen_wrapper.dart';
 import 'add_product_screen.dart';
 import 'add_voucher_screen.dart';
 import 'favorite_screen.dart';

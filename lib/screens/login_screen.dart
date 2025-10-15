@@ -1,9 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
-
 import '../controllers/login_controller.dart';
-import 'home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,14 +27,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _usernameController.text, _passwordController.text, context);
 
     if (result != null) {
-      print("UID: $result");
       if (result.length == 28) {
         Navigator.pushReplacementNamed(context, '/home_screen',
             arguments: result);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result)),
-        );
       }
     }
   }
@@ -44,15 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<String> _loginWithGoogle(BuildContext context) async {
     String? result = await _loginController.loginWithGoogle(context);
 
-    if (result != null && result.isNotEmpty) {
-      print("UID: $result");
+    if (result.isNotEmpty) {
+      if (kDebugMode) {
+        print("UID: $result");
+      }
       if (result.length == 28) {
         Navigator.pushReplacementNamed(context, '/home_screen',
             arguments: result);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result)),
-        );
       }
     }
     return result ?? '';
@@ -88,12 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                String? result =
-                    await _loginController.resetPassword(emailController.text);
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result ?? 'An error occurred')),
-                );
               },
               style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.green.shade600),

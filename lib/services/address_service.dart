@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shoppingapp/models/address_model.dart';
 
 class AddressFirestoreService {
@@ -11,7 +12,9 @@ class AddressFirestoreService {
   Future<bool> saveAddress(Address address) async {
     final uid = currentUserId;
     if (uid == null) {
-      print('Lỗi: Người dùng chưa đăng nhập.');
+      if (kDebugMode) {
+        print('Lỗi: Người dùng chưa đăng nhập.');
+      }
       return false;
     }
 
@@ -25,7 +28,9 @@ class AddressFirestoreService {
 
       return true;
     } catch (e) {
-      print('Firestore Error saving address: $e');
+      if (kDebugMode) {
+        print('Firestore Error saving address: $e');
+      }
       return false;
     }
   }
@@ -47,7 +52,9 @@ class AddressFirestoreService {
       }
       return null;
     } catch (e) {
-      print('Firestore Error getting address: $e');
+      if (kDebugMode) {
+        print('Firestore Error getting address: $e');
+      }
       return null;
     }
   }

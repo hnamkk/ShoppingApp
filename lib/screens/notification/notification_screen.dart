@@ -232,7 +232,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     final currentData = _notifications[index].data() as Map<String, dynamic>;
     final previousData =
-    _notifications[index - 1].data() as Map<String, dynamic>;
+        _notifications[index - 1].data() as Map<String, dynamic>;
 
     final currentDate = (currentData['createdAt'] as Timestamp?)?.toDate();
     final previousDate = (previousData['createdAt'] as Timestamp?)?.toDate();
@@ -300,7 +300,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final type = data['type'] as String? ?? 'general';
     final title = data['title'] as String? ?? 'Thông báo';
     final message = data['message'] as String? ?? '';
-    final isRead = _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
+    final isRead =
+        _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
     final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
     final orderId = data['orderId'] as String?;
 
@@ -500,7 +501,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> _handleNotificationTap(
       String docId, Map<String, dynamic> data) async {
-    final isRead = _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
+    final isRead =
+        _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
 
     if (!isRead) {
       setState(() {
@@ -675,7 +677,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final unreadDocs = _notifications.where((doc) {
       final docId = doc.id;
       final data = doc.data() as Map<String, dynamic>;
-      final isRead = _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
+      final isRead =
+          _readStatusOverride[docId] ?? (data['isRead'] as bool? ?? false);
       return !isRead;
     }).toList();
 

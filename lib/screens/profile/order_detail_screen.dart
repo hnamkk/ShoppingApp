@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/order_model.dart';
 import '../../services/order_service.dart';
-import '../../widgets/notification_helper.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -315,7 +314,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     const SizedBox(height: 8),
                                     Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           '${formatCurrency.format(item.price)}đ',
@@ -494,7 +493,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildPriceRow(String label, String value,
-      {bool isShipping = false, bool isDiscount = false, bool isTotal = false}) {
+      {bool isShipping = false,
+      bool isDiscount = false,
+      bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -514,10 +515,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             color: isShipping && value == 'Miễn phí'
                 ? Colors.green
                 : isDiscount
-                ? Colors.red
-                : isTotal
-                ? Colors.green
-                : Colors.black,
+                    ? Colors.red
+                    : isTotal
+                        ? Colors.green
+                        : Colors.black,
           ),
         ),
       ],

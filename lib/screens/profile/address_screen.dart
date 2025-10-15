@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
@@ -71,7 +72,9 @@ class _AddressScreenState extends State<AddressScreen> {
         }
       });
     } catch (e) {
-      print('Error loading locations: $e');
+      if (kDebugMode) {
+        print('Error loading locations: $e');
+      }
     }
   }
 

@@ -168,7 +168,8 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -229,9 +230,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
 
   Widget _buildInfoRow(String label, String value,
       {bool isBold = false,
-        bool isAmount = false,
-        bool isDiscount = false,
-        int maxLines = 1}) {
+      bool isAmount = false,
+      bool isDiscount = false,
+      int maxLines = 1}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -250,12 +251,12 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight:
-              isBold || isAmount ? FontWeight.w600 : FontWeight.normal,
+                  isBold || isAmount ? FontWeight.w600 : FontWeight.normal,
               color: isAmount
                   ? Colors.green
                   : isDiscount
-                  ? Colors.orange[700]
-                  : Colors.black,
+                      ? Colors.orange[700]
+                      : Colors.black,
             ),
             textAlign: TextAlign.right,
             maxLines: maxLines,

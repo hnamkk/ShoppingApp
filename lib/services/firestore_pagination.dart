@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class FirestorePagination<T> {
   final Query query;
@@ -62,7 +63,9 @@ class FirestorePagination<T> {
         }
       }
     } catch (e) {
-      print('Error loading more: $e');
+      if (kDebugMode) {
+        print('Error loading more: $e');
+      }
       rethrow;
     } finally {
       _isLoading = false;

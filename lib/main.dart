@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shoppingapp/screens/home/product_detail_screen.dart';
 import 'package:shoppingapp/screens/login_screen.dart';
-import 'package:shoppingapp/screens/main_screen.dart';
+import 'package:shoppingapp/screens/main_screen_wrapper.dart';
 import 'package:shoppingapp/screens/profile/order_detail_screen.dart';
 import 'package:shoppingapp/screens/profile/order_screen.dart';
 import 'package:shoppingapp/screens/register_screen.dart';
@@ -118,11 +118,9 @@ class _AuthGateState extends State<AuthGate> {
     super.initState();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
-        // User logged in - start services
         _orderStatusService.startStatusUpdater();
         NotificationService().initialize();
       } else {
-        // User logged out - stop services
         _orderStatusService.stopStatusUpdater();
         NotificationService().dispose();
       }

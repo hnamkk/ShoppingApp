@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/notification_helper.dart';
 import '../services/notification_service.dart';
-import '../widgets/notification_helper.dart';
 
 class OrderStatusService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -39,7 +40,7 @@ class OrderStatusService {
           .collection('orders')
           .where('userId', isEqualTo: userId)
           .where('status',
-          whereIn: ['pending', 'preparing', 'delivering']).get();
+              whereIn: ['pending', 'preparing', 'delivering']).get();
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
@@ -58,13 +59,16 @@ class OrderStatusService {
             break;
 
           case 'preparing':
-            if (minutesSinceCreated >= pendingToPreparing + preparingToDelivering) {
+            if (minutesSinceCreated >=
+                pendingToPreparing + preparingToDelivering) {
               newStatus = 'delivering';
             }
             break;
 
           case 'delivering':
-            const totalMinutes = pendingToPreparing + preparingToDelivering + deliveringToDelivered;
+            const totalMinutes = pendingToPreparing +
+                preparingToDelivering +
+                deliveringToDelivered;
 
             if (minutesSinceCreated >= totalMinutes) {
               if (hour >= 8 && hour < 18) {
@@ -80,12 +84,13 @@ class OrderStatusService {
             'updatedAt': FieldValue.serverTimestamp(),
           });
 
-          // Gửi cả 2 loại notification
           await _sendStatusChangeNotification(orderId, newStatus, userId);
         }
       }
     } catch (e) {
-      print('Lỗi khi cập nhật trạng thái đơn hàng: $e');
+      if (kDebugMode) {
+        print('Lỗi khi cập nhật trạng thái đơn hàng: $e');
+      }
     }
   }
 
@@ -99,7 +104,8 @@ class OrderStatusService {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      final notificationEnabled = prefs.getBool('notifications_enabled') ?? true;
+      final notificationEnabled =
+          prefs.getBool('notifications_enabled') ?? true;
 
       if (!notificationEnabled) {
         return;
@@ -112,19 +118,23 @@ class OrderStatusService {
       switch (newStatus) {
         case 'preparing':
           title = 'Đang chuẩn bị đơn hàng';
-          body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được chuẩn bị';
+          body =
+              'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được chuẩn bị';
           break;
         case 'delivering':
           title = 'Đang giao hàng';
-          body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang trên đường giao đến bạn';
+          body =
+              'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang trên đường giao đến bạn';
           break;
         case 'delivered':
           title = 'Đã giao hàng';
-          body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được giao thành công!';
+          body =
+              'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được giao thành công!';
           break;
         case 'cancelled':
           title = 'Đơn hàng đã hủy';
-          body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được hủy';
+          body =
+              'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được hủy';
           break;
       }
 
@@ -132,7 +142,9 @@ class OrderStatusService {
         await notificationService.showOrderNotification(title, body, orderId);
       }
     } catch (e) {
-      print('Lỗi khi gửi notification: $e');
+      if (kDebugMode) {
+        print('Lỗi khi gửi notification: $e');
+      }
     }
   }
 

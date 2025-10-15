@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -19,9 +20,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (_passwordController.text != _passwordAgainController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mật khẩu không khớp.')),
-      );
       return;
     }
     String? result = await _registerController.register(
@@ -30,14 +28,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (result != null) {
-      print("UID: $result");
+      if (kDebugMode) {
+        print("UID: $result");
+      }
       if (result.length == 28) {
         Navigator.pushReplacementNamed(context, '/home_screen',
             arguments: result);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result)),
-        );
       }
     }
   }
@@ -45,15 +41,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _registerWithGoogle() async {
     String? result = await _registerController.registerWithGoogle();
 
-    if (result != null) {
-      print("UID: $result");
+    if (result.isNotEmpty) {
+      if (kDebugMode) {
+        print("UID: $result");
+      }
       if (result.length == 28) {
         Navigator.pushReplacementNamed(context, '/home_screen',
             arguments: result);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result)),
-        );
       }
     }
   }

@@ -14,12 +14,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
+
   factory NotificationService() => _instance;
+
   NotificationService._internal();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -43,7 +45,8 @@ class NotificationService {
     if (_isInitialized) return;
 
     try {
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
 
       await _requestPermission();
       await _initializeLocalNotifications();
@@ -81,10 +84,10 @@ class NotificationService {
 
   Future<void> _initializeLocalNotifications() async {
     const AndroidInitializationSettings androidSettings =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const DarwinInitializationSettings iosSettings =
-    DarwinInitializationSettings(
+        DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -139,9 +142,9 @@ class NotificationService {
       ),
     ];
 
-    final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
       for (var channel in channels) {
@@ -151,7 +154,6 @@ class NotificationService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-
     if (response.payload != null) {
       if (_onNavigate != null) {
         _handleNotificationNavigation(response.payload!);
@@ -284,7 +286,9 @@ class NotificationService {
 
     final data = message.data;
     final type = data['type'] as String?;
-    final id = data['id'] as String? ?? data['orderId'] as String? ?? data['productId'] as String?;
+    final id = data['id'] as String? ??
+        data['orderId'] as String? ??
+        data['productId'] as String?;
 
     if (kDebugMode) {
       print('Remote navigation - type: $type, id: $id');
@@ -342,7 +346,7 @@ class NotificationService {
     }
 
     final AndroidNotificationDetails androidDetails =
-    AndroidNotificationDetails(
+        AndroidNotificationDetails(
       channelId,
       channelName,
       channelDescription: 'Notifications from the app',
@@ -423,19 +427,23 @@ class NotificationService {
     switch (status) {
       case 'pending':
         title = 'Đơn hàng đã được đặt';
-        body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang chờ xác nhận';
+        body =
+            'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang chờ xác nhận';
         break;
       case 'preparing':
         title = 'Đang chuẩn bị đơn hàng';
-        body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được chuẩn bị';
+        body =
+            'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được chuẩn bị';
         break;
       case 'delivering':
         title = 'Đang giao hàng';
-        body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được giao đến bạn';
+        body =
+            'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đang được giao đến bạn';
         break;
       case 'delivered':
         title = 'Đã giao hàng';
-        body = 'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được giao thành công';
+        body =
+            'Đơn hàng #${orderId.substring(0, 8).toUpperCase()} đã được giao thành công';
         break;
       case 'cancelled':
         title = 'Đơn hàng đã hủy';
@@ -451,7 +459,7 @@ class NotificationService {
   Future<void> showOrderNotification(
       String title, String body, String orderId) async {
     const AndroidNotificationDetails androidDetails =
-    AndroidNotificationDetails(
+        AndroidNotificationDetails(
       'order_channel',
       'Order Notifications',
       channelDescription: 'Notifications for order status updates',
@@ -516,5 +524,6 @@ class NotificationService {
   }
 
   String? get fcmToken => _fcmToken;
+
   bool get isInitialized => _isInitialized;
 }

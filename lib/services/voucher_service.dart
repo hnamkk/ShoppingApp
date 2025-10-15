@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/voucher_model.dart';
 
 class VoucherService {
@@ -18,7 +19,9 @@ class VoucherService {
             try {
               return Voucher.fromMap(doc.id, doc.data());
             } catch (e) {
-              print('Lỗi parse voucher ${doc.id}: $e');
+              if (kDebugMode) {
+                print('Lỗi parse voucher ${doc.id}: $e');
+              }
               return null;
             }
           })
@@ -26,11 +29,11 @@ class VoucherService {
           .map((voucher) => voucher!)
           .where((voucher) => voucher.expiryDate.isAfter(now))
           .toList();
-
-      print('Đã load ${vouchers.length} vouchers');
       return vouchers;
     } catch (e) {
-      print('Lỗi khi tải voucher: $e');
+      if (kDebugMode) {
+        print('Lỗi khi tải voucher: $e');
+      }
       throw Exception('Lỗi khi tải voucher: $e');
     }
   }
@@ -67,7 +70,9 @@ class VoucherService {
         'usedCount': FieldValue.increment(1),
       });
     } catch (e) {
-      print('Lỗi khi cập nhật voucher: $e');
+      if (kDebugMode) {
+        print('Lỗi khi cập nhật voucher: $e');
+      }
       throw Exception('Lỗi khi cập nhật voucher: $e');
     }
   }
@@ -76,10 +81,11 @@ class VoucherService {
     try {
       final docRef =
           await _firestore.collection('vouchers').add(voucher.toMap());
-      print('Đã tạo voucher: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      print('Lỗi khi tạo voucher: $e');
+      if (kDebugMode) {
+        print('Lỗi khi tạo voucher: $e');
+      }
       throw Exception('Lỗi khi tạo voucher: $e');
     }
   }
@@ -96,7 +102,9 @@ class VoucherService {
             try {
               return Voucher.fromMap(doc.id, doc.data());
             } catch (e) {
-              print('Lỗi parse voucher ${doc.id}: $e');
+              if (kDebugMode) {
+                print('Lỗi parse voucher ${doc.id}: $e');
+              }
               return null;
             }
           })
@@ -112,7 +120,9 @@ class VoucherService {
       final snapshot = await _firestore.collection('vouchers').limit(1).get();
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Lỗi kiểm tra vouchers: $e');
+      if (kDebugMode) {
+        print('Lỗi kiểm tra vouchers: $e');
+      }
       return false;
     }
   }
@@ -129,7 +139,9 @@ class VoucherService {
             try {
               return Voucher.fromMap(doc.id, doc.data());
             } catch (e) {
-              print('Lỗi parse voucher ${doc.id}: $e');
+              if (kDebugMode) {
+                print('Lỗi parse voucher ${doc.id}: $e');
+              }
               return null;
             }
           })
@@ -137,7 +149,9 @@ class VoucherService {
           .map((voucher) => voucher!)
           .toList();
     } catch (e) {
-      print('Lỗi khi tải tất cả voucher: $e');
+      if (kDebugMode) {
+        print('Lỗi khi tải tất cả voucher: $e');
+      }
       throw Exception('Lỗi khi tải voucher: $e');
     }
   }

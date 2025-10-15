@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/voucher_model.dart';
@@ -162,7 +163,9 @@ class _VoucherBottomSheetState extends State<VoucherBottomSheet> {
         });
       }
     } catch (e) {
-      print('Lỗi load vouchers: $e');
+      if (kDebugMode) {
+        print('Lỗi load vouchers: $e');
+      }
       if (mounted) {
         setState(() {
           _errorMessage = 'Không thể tải voucher. Vui lòng thử lại.';

@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../helpers/notification_helper.dart';
 import '../../models/order_model.dart' as models;
 import '../../models/address_model.dart';
 import '../../models/voucher_model.dart';
@@ -12,7 +14,6 @@ import '../../services/order_service.dart';
 import '../../services/address_service.dart';
 import '../../services/voucher_service.dart';
 import '../../widgets/address_card.dart';
-import '../../widgets/notification_helper.dart';
 import '../../widgets/voucher_card.dart';
 import 'order_success_screen.dart';
 
@@ -822,7 +823,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           orderId,
         );
       } catch (notificationError) {
-        print('Lỗi khi gửi notification: $notificationError');
+        if (kDebugMode) {
+          print('Lỗi khi gửi notification: $notificationError');
+        }
       }
 
       setState(() {

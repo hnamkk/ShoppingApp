@@ -258,7 +258,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
               _jsonController.text = exampleJson.split('\n\nLưu ý:')[0];
               Navigator.pop(context);
             },
-            child: const Text('Sử dụng ví dụ', style: TextStyle(color: Colors.green)),
+            child: const Text('Sử dụng ví dụ',
+                style: TextStyle(color: Colors.green)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),

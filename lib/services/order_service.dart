@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/notification_helper.dart';
 import '../models/order_model.dart' as models;
 import '../services/notification_service.dart';
-import '../widgets/notification_helper.dart';
 
 class OrderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,7 +16,7 @@ class OrderService {
 
         for (var item in order.items) {
           final productRef =
-          _firestore.collection('products').doc(item.productId);
+              _firestore.collection('products').doc(item.productId);
           final productDoc = await transaction.get(productRef);
           productDocs[item.productId] = productDoc;
         }
@@ -43,7 +43,7 @@ class OrderService {
           final currentSold = data['sold'] ?? 0;
 
           final productRef =
-          _firestore.collection('products').doc(item.productId);
+              _firestore.collection('products').doc(item.productId);
           transaction.update(productRef, {
             'stock': currentStock - item.quantity,
             'sold': currentSold + item.quantity,
@@ -203,7 +203,7 @@ class OrderService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => models.Order.fromMap(doc.id, doc.data()))
-        .toList());
+            .map((doc) => models.Order.fromMap(doc.id, doc.data()))
+            .toList());
   }
 }

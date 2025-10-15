@@ -2,11 +2,11 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shoppingapp/screens/profile/profile_screen.dart';
+import '../helpers/notification_helper.dart';
 import '../screens/home/home_screen.dart' as app_home;
-import '../screens/main_screen.dart';
+import '../screens/main_screen_wrapper.dart';
 import '../screens/notification/notification_screen.dart';
 import '../screens/search/search_screen.dart';
-import '../widgets/notification_helper.dart';
 
 class BottomAppBarWidget extends StatefulWidget {
   const BottomAppBarWidget({super.key});
@@ -63,7 +63,6 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
           activeIcon: Image.asset('assets/images/search_selected.png'),
           title: 'Tìm kiếm',
         ),
-        // Notification với badge
         TabItem(
           icon: _buildNotificationIcon(false),
           activeIcon: _buildNotificationIcon(true),
@@ -113,7 +112,6 @@ class _BottomAppBarWidgetState extends State<BottomAppBarWidget> {
     );
   }
 
-  // Build notification icon với badge
   Widget _buildNotificationIcon(bool isActive) {
     return StreamBuilder<int>(
       stream: NotificationHelper.getUnreadCountStream(),
