@@ -46,31 +46,31 @@ class OrderStatusService {
         final data = doc.data();
         final status = data['status'] as String;
         final createdAt = (data['createdAt'] as Timestamp).toDate();
-        final minutesSinceCreated = now.difference(createdAt).inMinutes;
+        final timeSinceCreated = now.difference(createdAt).inMinutes;
         final orderId = data['orderId'] as String? ?? doc.id;
 
         String? newStatus;
 
         switch (status) {
           case 'pending':
-            if (minutesSinceCreated >= pendingToPreparing) {
+            if (timeSinceCreated >= pendingToPreparing) {
               newStatus = 'preparing';
             }
             break;
 
           case 'preparing':
-            if (minutesSinceCreated >=
+            if (timeSinceCreated >=
                 pendingToPreparing + preparingToDelivering) {
               newStatus = 'delivering';
             }
             break;
 
           case 'delivering':
-            const totalMinutes = pendingToPreparing +
+            const totalTime = pendingToPreparing +
                 preparingToDelivering +
                 deliveringToDelivered;
 
-            if (minutesSinceCreated >= totalMinutes) {
+            if (timeSinceCreated >= totalTime) {
               if (hour >= 8 && hour < 18) {
                 newStatus = 'delivered';
               }

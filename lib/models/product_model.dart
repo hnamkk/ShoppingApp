@@ -47,6 +47,4 @@ class Product {
   }
 
   String get primaryImage => imageUrls.isNotEmpty ? imageUrls[0] : imageUrl;
-
-  bool get hasMultipleImages => imageUrls.length > 1;
 }

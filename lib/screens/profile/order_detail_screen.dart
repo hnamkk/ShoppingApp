@@ -238,7 +238,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          'Mã đơn: #${order.orderId?.substring(0, 8).toUpperCase()}',
+                          'Mã đơn: #${order.orderId}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,

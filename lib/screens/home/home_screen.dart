@@ -8,6 +8,7 @@ import '../../services/cart_service.dart';
 import '../../services/firestore_pagination.dart';
 import '../../widgets/product_card.dart';
 import 'cart_screen.dart';
+import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
     'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800',
   ];
 
+  final List<Map<String, String>> bannerContents = [
+    {
+      'title': 'Ưu đãi khai trương',
+      'subtitle': 'Miễn phí vận chuyển',
+    },
+    {
+      'title': 'Hàng tươi ngon',
+      'subtitle': 'Giao nhanh trong 24h',
+    },
+    {
+      'title': 'Giảm đến 30.000đ',
+      'subtitle': 'Tặng bạn mới',
+    },
+  ];
+
   final List<String> categories = [
     'Tất cả',
     'Thịt sạch',
@@ -49,9 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Query query = FirebaseFirestore.instance.collection('products');
 
     if (selectedCategory == 'Tất cả') {
-      query = query.orderBy('createdAt', descending: true);
+      query = query
+          .where('stock', isGreaterThan: 0)
+          .orderBy('stock')
+          .orderBy('createdAt', descending: true);
     } else {
-      query = query.where('category', isEqualTo: selectedCategory);
+      query = query
+          .where('category', isEqualTo: selectedCategory)
+          .where('stock', isGreaterThan: 0);
     }
 
     _pagination = FirestorePagination<Product>(
@@ -61,7 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return product;
       },
       pageSize: 10,
-      filterCondition: (product) => product.stock > 0,
     );
 
     _loadInitialData();
@@ -108,14 +128,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _pagination.clear();
 
-    Query query = FirebaseFirestore.instance
-        .collection('products')
-        .where('stock', isGreaterThan: 0);
+    Query query = FirebaseFirestore.instance.collection('products');
 
-    if (selectedCategory != 'Tất cả') {
-      query = query.where('category', isEqualTo: selectedCategory);
+    if (selectedCategory == 'Tất cả') {
+      query = query
+          .where('stock', isGreaterThan: 0)
+          .orderBy('stock')
+          .orderBy('createdAt', descending: true);
     } else {
-      query = query.orderBy('createdAt', descending: true);
+      query = query
+          .where('category', isEqualTo: selectedCategory)
+          .where('stock', isGreaterThan: 0);
     }
 
     _pagination = FirestorePagination<Product>(
@@ -128,14 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
       await _pagination.loadMore();
     } catch (e) {
       debugPrint('Error switching category: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi đổi danh mục: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
 
     if (mounted) {
@@ -166,6 +181,20 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: Image.asset(
+            'assets/images/chatbot.png',
+            width: 26,
+            height: 26,
+            color: Colors.black,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatScreen()),
+            );
+          },
+        ),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -214,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: RefreshIndicator(
+        color: Colors.green,
         onRefresh: () async {
           await _pagination.refresh();
           if (mounted) setState(() {});
@@ -240,7 +270,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                       },
                     ),
-                    items: bannerImages.map((imageUrl) {
+                    items: bannerImages.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      String imageUrl = entry.value;
+                      Map<String, String> content = bannerContents[index];
+
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
@@ -248,48 +282,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.green[100]),
                         child: Stack(
                           children: [
-                            Positioned(
-                              left: 20,
-                              top: 30,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Giảm đến 30%',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  const Text(
-                                    'Gì cũng rẻ',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Mua ngay',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                             Positioned(
                               right: 0,
                               bottom: 0,
@@ -302,6 +294,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fit: BoxFit.cover,
                                   width: 180,
                                 ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 20,
+                              top: 30,
+                              right: 180,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    content['title']!,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    content['subtitle']!,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
                               ),
                             ),
                           ],
@@ -394,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(40.0),
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(color: Colors.green),
                   ),
                 )
               else if (_pagination.isEmpty && !_pagination.isLoading)
@@ -421,7 +440,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
+                            child: CircularProgressIndicator(
+                              color: Colors.green,
+                            ),
                           ),
                         );
                       } else {

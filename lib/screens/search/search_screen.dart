@@ -157,6 +157,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: TextField(
                   controller: _searchController,
                   autofocus: true,
+                  cursorColor: Colors.green,
                   decoration: InputDecoration(
                     hintText: 'Tìm kiếm sản phẩm...',
                     border: InputBorder.none,

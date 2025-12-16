@@ -84,7 +84,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                         children: [
                           _buildInfoRow(
                             'Mã đơn hàng',
-                            '#${widget.order.orderId?.substring(0, 8).toUpperCase() ?? 'N/A'}',
+                            '#${widget.order.orderId ?? 'N/A'}',
                           ),
                           const Divider(height: 24),
                           _buildInfoRow(

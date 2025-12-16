@@ -159,7 +159,7 @@ class NotificationService {
         _handleNotificationNavigation(response.payload!);
       } else {
         if (kDebugMode) {
-          print('⚠️ Navigation callback chưa được đăng ký!');
+          print('Navigation callback chưa được đăng ký!');
         }
       }
     }

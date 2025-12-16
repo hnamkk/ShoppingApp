@@ -243,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: _notificationsEnabled ? Colors.green : Colors.grey,
         ),
         title: const Text(
-          'Thông báo đẩy',
+          'Thông báo',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
