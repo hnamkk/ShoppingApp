@@ -59,7 +59,9 @@ class _ChatScreenState extends State<ChatScreen> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             filled: true,
             fillColor: Colors.green.withOpacity(0.05),
+            counterText: '', // Hide default counter
           ),
+          maxLength: 500, // Phase 1: Enforce max length in UI
           cursorStyle: const CursorStyle(color: Colors.green, width: 2),
           sendButtonBuilder: (send) => IconButton(
             icon: const Icon(Icons.send, color: Colors.green),

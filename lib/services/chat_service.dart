@@ -6,11 +6,26 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final GenerativeModel _model;
   final Map<String, List<Content>> _conversationHistory = {};
+  
+  // Phase 1: Rate Limiting
+  final Map<String, List<DateTime>> _userMessageTimestamps = {};
+  static const int _maxMessagesPerMinute = 15;
+  static const Duration _rateLimitWindow = Duration(minutes: 1);
+  
+  // Phase 1: Input Validation
+  static const int _minMessageLength = 2;
+  static const int _maxMessageLength = 500;
+  
+  bool _apiKeyValid = false;
 
   ChatService() {
     final apiKey = dotenv.env['GOOGLE_API_KEY'] ?? '';
     if (apiKey.isEmpty) {
-      print('WARNING: GOOGLE_API_KEY is empty!');
+      print('ERROR: GOOGLE_API_KEY is missing! Please add it to .env file.');
+      _apiKeyValid = false;
+    } else {
+      _apiKeyValid = true;
+      print('Gemini API key loaded successfully');
     }
 
     _model = GenerativeModel(
@@ -27,6 +42,79 @@ class ChatService {
       ],
     );
   }
+  
+  // Phase 1: Rate Limiting Implementation
+  bool _checkRateLimit(String userId) {
+    final now = DateTime.now();
+    
+    // Get or create timestamp list for user
+    if (!_userMessageTimestamps.containsKey(userId)) {
+      _userMessageTimestamps[userId] = [];
+    }
+    
+    final timestamps = _userMessageTimestamps[userId]!;
+    
+    // Remove timestamps older than rate limit window
+    timestamps.removeWhere((timestamp) => 
+      now.difference(timestamp) > _rateLimitWindow
+    );
+    
+    // Check if user exceeded rate limit
+    if (timestamps.length >= _maxMessagesPerMinute) {
+      return false;
+    }
+    
+    // Add current timestamp
+    timestamps.add(now);
+    return true;
+  }
+  
+  // Phase 1: Input Validation
+  String? _validateInput(String message) {
+    // Check if message is empty or only whitespace
+    if (message.trim().isEmpty) {
+      return 'Vui lòng nhập tin nhắn.';
+    }
+    
+    // Check minimum length
+    if (message.trim().length < _minMessageLength) {
+      return 'Tin nhắn quá ngắn. Vui lòng nhập ít nhất $_minMessageLength ký tự.';
+    }
+    
+    // Check maximum length
+    if (message.length > _maxMessageLength) {
+      return 'Tin nhắn quá dài. Vui lòng nhập tối đa $_maxMessageLength ký tự.';
+    }
+    
+    // Check for suspicious patterns (basic injection prevention)
+    final suspiciousPatterns = [
+      RegExp(r'<script', caseSensitive: false),
+      RegExp(r'javascript:', caseSensitive: false),
+      RegExp(r'on\w+\s*=', caseSensitive: false),
+    ];
+    
+    for (final pattern in suspiciousPatterns) {
+      if (pattern.hasMatch(message)) {
+        return 'Tin nhắn chứa nội dung không hợp lệ.';
+      }
+    }
+    
+    return null; // Valid
+  }
+  
+  // Phase 1: Sanitize input
+  String _sanitizeInput(String message) {
+    // Remove leading/trailing whitespace
+    String sanitized = message.trim();
+    
+    // Replace multiple spaces with single space
+    sanitized = sanitized.replaceAll(RegExp(r'\s+'), ' ');
+    
+    // Remove any potential HTML tags
+    sanitized = sanitized.replaceAll(RegExp(r'<[^>]*>'), '');
+    
+    return sanitized;
+  }
 
   Future<void> testAPIConnection() async {
     try {
@@ -42,25 +130,52 @@ class ChatService {
 
   Future<String> sendMessage(String message, String userId) async {
     try {
-      if (message.trim().isEmpty) {
-        return 'Bạn cần tôi hỗ trợ gì? Tôi có thể giúp kiểm tra đơn hàng, gợi ý sản phẩm, hoặc trả lời thắc mắc.';
+      // Phase 1: Check API Key validity
+      if (!_apiKeyValid) {
+        return 'Xin lỗi, dịch vụ chatbot chưa sẵn sàng. Vui lòng thử lại sau.';
       }
-
-      final intent = await _detectIntentWithAI(message);
+      
+      // Phase 1: Check Rate Limit
+      if (!_checkRateLimit(userId)) {
+        return 'Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ 1 phút trước khi tiếp tục. (Giới hạn: $_maxMessagesPerMinute tin nhắn/phút)';
+      }
+      
+      // Phase 1: Validate Input
+      final validationError = _validateInput(message);
+      if (validationError != null) {
+        return validationError;
+      }
+      
+      // Phase 1: Sanitize Input
+      final sanitizedMessage = _sanitizeInput(message);
+      
+      // Use sanitized message for processing
+      final intent = await _detectIntentWithAI(sanitizedMessage);
 
       switch (intent) {
         case ChatIntent.orderTracking:
-          return await _handleOrderTracking(message, userId);
+          return await _handleOrderTracking(sanitizedMessage, userId);
         case ChatIntent.productRecommendation:
-          return await _handleProductRecommendationWithAI(message, userId);
+          return await _handleProductRecommendationWithAI(sanitizedMessage, userId);
         case ChatIntent.recipeHelp:
-          return await _handleRecipeHelp(message, userId);
+          return await _handleRecipeHelp(sanitizedMessage, userId);
         default:
-          return await _handleGeneral(message, userId);
+          return await _handleGeneral(sanitizedMessage, userId);
       }
     } on GenerativeAIException catch (e) {
       print('GenerativeAIException: ${e.message}');
-      return 'Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.';
+      
+      // Phase 1: Enhanced API Error Handling
+      if (e.message.contains('API_KEY_INVALID') || e.message.contains('403')) {
+        _apiKeyValid = false;
+        return 'Xin lỗi, dịch vụ chatbot chưa sẵn sàng. Vui lòng thử lại sau';
+      } else if (e.message.contains('429') || e.message.contains('RESOURCE_EXHAUSTED')) {
+        return 'Hệ thống đang quá tải. Vui lòng thử lại sau vài phút.';
+      } else if (e.message.contains('SAFETY')) {
+        return 'Tin nhắn của bạn có thể vi phạm chính sách an toàn. Vui lòng diễn đạt lại câu hỏi.';
+      }
+      
+      return 'Xin lỗi, tôi đang gặp sự cố kết nối với máy chủ AI. Vui lòng thử lại sau.';
     } catch (e, stackTrace) {
       print('Error in sendMessage: $e');
       print('Stack trace: $stackTrace');
