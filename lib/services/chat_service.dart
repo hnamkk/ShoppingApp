@@ -7,12 +7,10 @@ class ChatService {
   late final GenerativeModel _model;
   final Map<String, List<Content>> _conversationHistory = {};
   
-  // Phase 1: Rate Limiting
   final Map<String, List<DateTime>> _userMessageTimestamps = {};
   static const int _maxMessagesPerMinute = 15;
   static const Duration _rateLimitWindow = Duration(minutes: 1);
   
-  // Phase 1: Input Validation
   static const int _minMessageLength = 2;
   static const int _maxMessageLength = 500;
   
@@ -43,50 +41,40 @@ class ChatService {
     );
   }
   
-  // Phase 1: Rate Limiting Implementation
   bool _checkRateLimit(String userId) {
     final now = DateTime.now();
     
-    // Get or create timestamp list for user
     if (!_userMessageTimestamps.containsKey(userId)) {
       _userMessageTimestamps[userId] = [];
     }
     
     final timestamps = _userMessageTimestamps[userId]!;
     
-    // Remove timestamps older than rate limit window
-    timestamps.removeWhere((timestamp) => 
+    timestamps.removeWhere((timestamp) =>
       now.difference(timestamp) > _rateLimitWindow
     );
     
-    // Check if user exceeded rate limit
     if (timestamps.length >= _maxMessagesPerMinute) {
       return false;
     }
     
-    // Add current timestamp
     timestamps.add(now);
     return true;
   }
   
-  // Phase 1: Input Validation
   String? _validateInput(String message) {
-    // Check if message is empty or only whitespace
     if (message.trim().isEmpty) {
       return 'Vui lòng nhập tin nhắn.';
     }
     
-    // Check minimum length
     if (message.trim().length < _minMessageLength) {
       return 'Tin nhắn quá ngắn. Vui lòng nhập ít nhất $_minMessageLength ký tự.';
     }
     
-    // Check maximum length
     if (message.length > _maxMessageLength) {
       return 'Tin nhắn quá dài. Vui lòng nhập tối đa $_maxMessageLength ký tự.';
     }
     
-    // Check for suspicious patterns (basic injection prevention)
     final suspiciousPatterns = [
       RegExp(r'<script', caseSensitive: false),
       RegExp(r'javascript:', caseSensitive: false),
@@ -99,18 +87,14 @@ class ChatService {
       }
     }
     
-    return null; // Valid
+    return null;
   }
   
-  // Phase 1: Sanitize input
   String _sanitizeInput(String message) {
-    // Remove leading/trailing whitespace
     String sanitized = message.trim();
     
-    // Replace multiple spaces with single space
     sanitized = sanitized.replaceAll(RegExp(r'\s+'), ' ');
     
-    // Remove any potential HTML tags
     sanitized = sanitized.replaceAll(RegExp(r'<[^>]*>'), '');
     
     return sanitized;
@@ -130,26 +114,21 @@ class ChatService {
 
   Future<String> sendMessage(String message, String userId) async {
     try {
-      // Phase 1: Check API Key validity
       if (!_apiKeyValid) {
         return 'Xin lỗi, dịch vụ chatbot chưa sẵn sàng. Vui lòng thử lại sau.';
       }
       
-      // Phase 1: Check Rate Limit
       if (!_checkRateLimit(userId)) {
         return 'Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ 1 phút trước khi tiếp tục. (Giới hạn: $_maxMessagesPerMinute tin nhắn/phút)';
       }
       
-      // Phase 1: Validate Input
       final validationError = _validateInput(message);
       if (validationError != null) {
         return validationError;
       }
       
-      // Phase 1: Sanitize Input
       final sanitizedMessage = _sanitizeInput(message);
       
-      // Use sanitized message for processing
       final intent = await _detectIntentWithAI(sanitizedMessage);
 
       switch (intent) {
@@ -165,7 +144,6 @@ class ChatService {
     } on GenerativeAIException catch (e) {
       print('GenerativeAIException: ${e.message}');
       
-      // Phase 1: Enhanced API Error Handling
       if (e.message.contains('API_KEY_INVALID') || e.message.contains('403')) {
         _apiKeyValid = false;
         return 'Xin lỗi, dịch vụ chatbot chưa sẵn sàng. Vui lòng thử lại sau';
@@ -354,22 +332,19 @@ Chỉ trả lời: ORDER_TRACKING hoặc PRODUCT_RECOMMENDATION hoặc RECIPE_HE
 
   Future<String> _handleProductRecommendationWithAI(String message, String userId) async {
     try {
-      final historyProductIds = await _getPurchasedProductIds(userId);
-      final favoriteIds = await _getFavoriteProductIds(userId);
-
       final used = <String>{};
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> picked = [];
 
       String? preferredCategory = _detectCategory(message);
 
-      Future<void> addProductsByCategory(String? category) async {
+      Future<void> addProductsByCategory(String? category, {int limit = 20}) async {
         var query = _firestore.collection('products').where('stock', isGreaterThan: 0);
 
         if (category != null) {
           query = query.where('category', isEqualTo: category);
         }
 
-        final products = await query.orderBy('stock').limit(20).get();
+        final products = await query.orderBy('stock').limit(limit).get();
 
         for (final p in products.docs) {
           if (used.contains(p.id)) continue;
@@ -380,60 +355,66 @@ Chỉ trả lời: ORDER_TRACKING hoặc PRODUCT_RECOMMENDATION hoặc RECIPE_HE
       }
 
       if (preferredCategory != null) {
-        await addProductsByCategory(preferredCategory);
-      }
+        await addProductsByCategory(preferredCategory, limit: 50);
+        
+        if (picked.isEmpty) {
+          return 'Hiện tại chưa có sản phẩm $preferredCategory trong kho. Bạn có thể xem danh mục khác nhé!';
+        }
+      } else {
+        final historyProductIds = await _getPurchasedProductIds(userId);
+        
+        if (picked.length < 5 && historyProductIds.isNotEmpty) {
+          for (final id in historyProductIds.take(3)) {
+            try {
+              final doc = await _firestore.collection('products').doc(id).get();
+              if (!doc.exists) continue;
 
-      if (picked.length < 5 && historyProductIds.isNotEmpty) {
-        for (final id in historyProductIds.take(3)) {
-          try {
-            final doc = await _firestore.collection('products').doc(id).get();
-            if (!doc.exists) continue;
-
-            final category = doc.data()?['category'];
-            if (category != null) {
-              await addProductsByCategory(category);
+              final category = doc.data()?['category'];
+              if (category != null) {
+                await addProductsByCategory(category);
+              }
+            } catch (e) {
+              continue;
             }
-          } catch (e) {
-            continue;
+            if (picked.length >= 5) break;
           }
-          if (picked.length >= 5) break;
         }
-      }
 
-      if (picked.length < 5) {
-        final featured = await _firestore
-            .collection('products')
-            .where('featured', isEqualTo: true)
-            .where('stock', isGreaterThan: 0)
-            .limit(10)
-            .get();
+        if (picked.length < 5) {
+          final featured = await _firestore
+              .collection('products')
+              .where('featured', isEqualTo: true)
+              .where('stock', isGreaterThan: 0)
+              .limit(10)
+              .get();
 
-        for (final p in featured.docs) {
-          if (used.contains(p.id)) continue;
-          picked.add(p);
-          used.add(p.id);
-          if (picked.length >= 5) break;
+          for (final p in featured.docs) {
+            if (used.contains(p.id)) continue;
+            picked.add(p);
+            used.add(p.id);
+            if (picked.length >= 5) break;
+          }
         }
-      }
 
-      if (picked.length < 5) {
-        final trending = await _firestore
-            .collection('products')
-            .where('stock', isGreaterThan: 0)
-            .orderBy('sold', descending: true)
-            .limit(10)
-            .get();
+        if (picked.length < 5) {
+          final trending = await _firestore
+              .collection('products')
+              .where('stock', isGreaterThan: 0)
+              .orderBy('sold', descending: true)
+              .limit(10)
+              .get();
 
-        for (final p in trending.docs) {
-          if (used.contains(p.id)) continue;
-          picked.add(p);
-          used.add(p.id);
-          if (picked.length >= 5) break;
+          for (final p in trending.docs) {
+            if (used.contains(p.id)) continue;
+            picked.add(p);
+            used.add(p.id);
+            if (picked.length >= 5) break;
+          }
         }
-      }
 
-      if (picked.isEmpty) {
-        return 'Hiện tại chưa có sản phẩm phù hợp. Bạn có thể xem các danh mục trong ứng dụng nhé!';
+        if (picked.isEmpty) {
+          return 'Hiện tại chưa có sản phẩm phù hợp. Bạn có thể xem các danh mục trong ứng dụng nhé!';
+        }
       }
 
       final productsInfo = picked.take(5).map((doc) {
@@ -441,22 +422,30 @@ Chỉ trả lời: ORDER_TRACKING hoặc PRODUCT_RECOMMENDATION hoặc RECIPE_HE
         return '${data['name']} - ${_formatCurrency((data['price'] ?? 0).toDouble())}';
       }).join(', ');
 
+      final categoryContext = preferredCategory != null 
+          ? 'Danh mục: $preferredCategory\n'
+          : '';
+
       final prompt = '''
 Bạn là nhân viên tư vấn tạp hóa thân thiện.
 
-Khách hỏi: "$message"
+${categoryContext}Khách hỏi: "$message"
 Sản phẩm có: $productsInfo
 
-Viết 1 câu giới thiệu ngắn (15-20 từ) về các sản phẩm tươi ngon này.
+Viết 1 câu giới thiệu ngắn (15-20 từ) về các sản phẩm${preferredCategory != null ? ' $preferredCategory' : ''} này.
 Không liệt kê, không emoji, tự nhiên như nói chuyện.
 ''';
 
       String intro;
       try {
         final res = await _model.generateContent([Content.text(prompt)]);
-        intro = res.text?.trim() ?? 'Sản phẩm tươi sống dành cho bạn:';
+        intro = res.text?.trim() ?? (preferredCategory != null 
+            ? 'Đây là các sản phẩm $preferredCategory có sẵn:' 
+            : 'Sản phẩm tươi sống dành cho bạn:');
       } catch (e) {
-        intro = 'Sản phẩm tươi sống dành cho bạn:';
+        intro = preferredCategory != null 
+            ? 'Đây là các sản phẩm $preferredCategory có sẵn:' 
+            : 'Sản phẩm tươi sống dành cho bạn:';
       }
 
       final buffer = StringBuffer(intro);
