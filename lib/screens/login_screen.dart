@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../controllers/login_controller.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final LoginController _loginController = LoginController();
 
   @override
   void initState() {
@@ -23,30 +23,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    String? result = await _loginController.login(
-        _usernameController.text, _passwordController.text, context);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.login(
+        _usernameController.text, _passwordController.text);
 
-    if (result != null) {
-      if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen',
-            arguments: result);
-      }
+    if (result['success'] && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/home_screen',
+          arguments: result['uid']);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
     }
   }
 
   Future<String> _loginWithGoogle(BuildContext context) async {
-    String? result = await _loginController.loginWithGoogle(context);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.signInWithGoogle();
 
-    if (result.isNotEmpty) {
-      if (kDebugMode) {
-        print("UID: $result");
-      }
-      if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen',
-            arguments: result);
-      }
+    if (result['success'] && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/home_screen',
+          arguments: result['uid']);
+      return result['uid'];
+    } else if (context.mounted && result['message'] != 'Hủy đăng nhập.') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
     }
-    return result ?? '';
+    return '';
   }
 
   Future<void> _resetPassword() async {
@@ -79,7 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop();
+                final authService =
+                    Provider.of<AuthService>(context, listen: false);
+                final result =
+                    await authService.resetPassword(emailController.text);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(result['message'])),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.green.shade600),

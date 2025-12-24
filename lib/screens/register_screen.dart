@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../controllers/register_controller.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,39 +17,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordAgainController =
       TextEditingController();
-  final RegisterController _registerController = RegisterController();
 
   Future<void> _register() async {
     if (_passwordController.text != _passwordAgainController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu không khớp.')),
+      );
       return;
     }
-    String? result = await _registerController.register(
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.register(
       _emailController.text,
       _passwordController.text,
     );
 
-    if (result != null) {
-      if (kDebugMode) {
-        print("UID: $result");
-      }
-      if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen',
-            arguments: result);
-      }
+    if (result['success'] && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/home_screen',
+          arguments: result['uid']);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
     }
   }
 
   Future<void> _registerWithGoogle() async {
-    String? result = await _registerController.registerWithGoogle();
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.signInWithGoogle();
 
-    if (result.isNotEmpty) {
-      if (kDebugMode) {
-        print("UID: $result");
-      }
-      if (result.length == 28) {
-        Navigator.pushReplacementNamed(context, '/home_screen',
-            arguments: result);
-      }
+    if (result['success'] && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/home_screen',
+          arguments: result['uid']);
+    } else if (context.mounted && result['message'] != 'Hủy đăng nhập.') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
     }
   }
 

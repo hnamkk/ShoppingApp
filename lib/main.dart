@@ -11,6 +11,7 @@ import 'package:shoppingapp/services/cart_service.dart';
 import 'package:shoppingapp/services/favorite_service.dart';
 import 'package:shoppingapp/services/notification_service.dart';
 import 'package:shoppingapp/services/order_status_service.dart';
+import 'package:shoppingapp/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -64,6 +65,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => AppState()),
         ChangeNotifierProvider(create: (context) => CartService()),
         ChangeNotifierProvider(create: (context) => FavoriteService()),
+        ChangeNotifierProvider(create: (context) => AuthService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

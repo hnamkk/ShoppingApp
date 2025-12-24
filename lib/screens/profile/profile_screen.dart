@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shoppingapp/controllers/login_controller.dart';
 import '../../main.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/address_card.dart';
 import '../../services/notification_service.dart';
 import '../main_screen_wrapper.dart';
@@ -896,8 +896,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               onPressed: () async {
-                final loginController = LoginController();
-                await loginController.logout(context);
+                final authService =
+                    Provider.of<AuthService>(context, listen: false);
+                await authService.logout();
                 final appState = context.read<AppState>();
                 appState.reset();
                 Navigator.of(context).pop();
