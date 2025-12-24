@@ -90,6 +90,34 @@ class VoucherService {
     }
   }
 
+  Future<void> updateVoucher(Voucher voucher) async {
+    try {
+      if (voucher.id == null) {
+        throw Exception('Voucher ID không được để trống');
+      }
+      await _firestore
+          .collection('vouchers')
+          .doc(voucher.id)
+          .update(voucher.toMap());
+    } catch (e) {
+      if (kDebugMode) {
+        print('Lỗi khi cập nhật voucher: $e');
+      }
+      throw Exception('Lỗi khi cập nhật voucher: $e');
+    }
+  }
+
+  Future<void> deleteVoucher(String voucherId) async {
+    try {
+      await _firestore.collection('vouchers').doc(voucherId).delete();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Lỗi khi xóa voucher: $e');
+      }
+      throw Exception('Lỗi khi xóa voucher: $e');
+    }
+  }
+
   Stream<List<Voucher>> getVouchersStream() {
     return _firestore
         .collection('vouchers')

@@ -7,8 +7,8 @@ import '../../main.dart';
 import '../../widgets/address_card.dart';
 import '../../services/notification_service.dart';
 import '../main_screen_wrapper.dart';
-import 'add_product_screen.dart';
-import 'add_voucher_screen.dart';
+import 'manage_products_screen.dart';
+import 'manage_vouchers_screen.dart';
 import 'favorite_screen.dart';
 import 'order_history_screen.dart';
 import 'order_screen.dart';
@@ -131,12 +131,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileItem(
                     context,
                     Icons.add_shopping_cart,
-                    'Thêm sản phẩm',
+                    'Quản lý sản phẩm',
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddProductScreen(),
+                          builder: (context) => const ManageProductsScreen(),
                         ),
                       );
                     },
@@ -144,12 +144,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileItem(
                     context,
                     Icons.local_offer,
-                    'Thêm voucher',
+                    'Quản lý voucher',
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddVoucherScreen(),
+                          builder: (context) => const ManageVouchersScreen(),
                         ),
                       );
                     },
